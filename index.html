@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nano Banana JSON Prompt Generator</title>
+  <!--
+    GitHub Pages notes:
+    - Put ALL JavaScript in /prompt-generator.js (no inline <script> tags).
+    - This avoids CSP issues on some hosts and keeps things clean.
+  -->
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; padding: 24px; max-width: 960px; }
+    header { margin-bottom: 16px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    textarea { width: 100%; min-height: 220px; padding: 12px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #111827; cursor: pointer; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
+    .success { display: none; color: #065f46; background: #ecfdf5; border: 1px solid #34d399; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
+    .success.show { display: inline-block; }
+    .muted { color: #6b7280; font-size: 14px; }
+    code.inline { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nano Banana JSON Prompt Generator</h1>
+    <p class="muted">
+      Paste your existing HTML UI here (without inline <script>) and wire events in <code class="inline">prompt-generator.js</code>. 
+      This scaffold is ready for GitHub Pages.
+    </p>
+  </header>
+
+  <main class="row">
+    <section class="card">
+      <h2>Inputs</h2>
+      <!-- Replace this stub with your real form/controls -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <label for="title" style="min-width:80px;">Title</label>
+        <input id="title" placeholder="e.g., Dress Prompt" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <label for="desc" style="min-width:80px;">Description</label>
+        <input id="desc" placeholder="e.g., Girls dress sizes 12, 18, 24; Hispanic & African American kids" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <label for="imageUrl" style="min-width:80px;">Image URL</label>
+        <input id="imageUrl" placeholder="https://example.com/item.jpg" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap: wrap;">
+        <button id="generateBtn">Generate JSON</button>
+        <button id="copyBtn">Copy JSON</button>
+        <span id="copyOk" class="success">Copied!</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Output</h2>
+      <textarea id="jsonOutput" readonly placeholder="{ the JSON will appear here }"></textarea>
+    </section>
+  </main>
+
+  <!-- Load your JavaScript (no inline <script>) -->
+  <script src="./prompt-generator.js"></script>
+</body>
+</html>
