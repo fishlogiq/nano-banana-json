@@ -33,9 +33,9 @@
       return;
     }
 
-    // Basic URL validation
-    if (!url.includes('shopify.com') && !url.includes('myshopify.com')) {
-      showError('Please enter a valid Shopify URL');
+    // More flexible URL validation - just check for /products/ path
+    if (!url.includes('/products/')) {
+      showError('Please enter a valid product URL (must contain /products/)');
       return;
     }
 
@@ -118,4 +118,3 @@
     }
   });
 })();
-
