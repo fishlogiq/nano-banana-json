@@ -1,185 +1,121 @@
-/* prompt-generator.js
-   Full, self-contained script for the Nano Banana JSON Prompt Generator.
-   - Cleans long pasted storefront text
-   - Extracts size info (e.g., "2T-3T-4T")
-   - Builds a structured JSON payload
-   - Copy-to-clipboard with secure + fallback paths
-*/
 (function () {
   "use strict";
 
-  // ---------- tiny DOM helpers ----------
-  const $ = (s) => document.querySelector(s);
+  const API_URL = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
 
-  const elTitle   = $("#title");
-  const elDesc    = $("#desc");
-  const elImage   = $("#imageUrl");
-  const btnGen    = $("#generateBtn");
-  const btnCopy   = $("#copyBtn");
-  const outArea   = $("#jsonOutput");
-  const copyOk    = $("#copyOk");
+  // DOM elements
+  const shopifyUrlInput = document.getElementById('shopifyUrl');
+  const generateBtn = document.getElementById('generateBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const jsonOutput = document.getElementById('jsonOutput');
+  const loader = document.getElementById('loader');
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+  const outputSection = document.getElementById('outputSection');
 
-  // ---------- text cleaning helpers ----------
-  function stripHtml(s = "") {
-    const el = document.createElement("div");
-    el.innerHTML = s;
-    const text = el.textContent || el.innerText || "";
-    return text.replace(/\s+/g, " ").trim();
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.classList.add('show');
+    setTimeout(() => errorMessage.classList.remove('show'), 5000);
   }
 
-  function pruneBoilerplate(s) {
-    // Remove common Shopify/site footer & “you may also like” blocks if present
-    const CUT_WORDS = [
-      "You may also like",
-      "Brands",
-      "Customer Service",
-      "Main Office",
-      "Payment methods",
-      "©",
-      "Designed by",
-      "Share",
-      "Pickup available",
-      "Add to cart",
-      "View store information",
-      "Twitter",
-      "Facebook",
-      "Instagram",
-      "FAQ",
-      "Blogs",
-      "Contact",
-    ];
-    let out = s;
-    for (const w of CUT_WORDS) {
-      const i = out.indexOf(w);
-      if (i !== -1) {
-        out = out.slice(0, i).trim();
-      }
+  function showSuccess(message) {
+    successMessage.textContent = message;
+    successMessage.classList.add('show');
+    setTimeout(() => successMessage.classList.remove('show'), 3000);
+  }
+
+  async function generatePrompt() {
+    const url = shopifyUrlInput.value.trim();
+    
+    if (!url) {
+      showError('Please enter a Shopify product URL');
+      return;
     }
-    return out;
-  }
 
-  function limitChars(s, max = 500) {
-    return s.length > max ? s.slice(0, max).trim() + "…" : s;
-  }
+    // Basic URL validation
+    if (!url.includes('shopify.com') && !url.includes('myshopify.com')) {
+      showError('Please enter a valid Shopify URL');
+      return;
+    }
 
-  function cleanedDescription(raw) {
-    let t = stripHtml(raw);
-    t = pruneBoilerplate(t);
-    // remove noisy SKU/UPC/Product Code lines
-    t = t.replace(/\b(UPC|Product\s*Code|SKU)\b[^.]+/gi, "").trim();
-    return limitChars(t, 500);
-  }
+    // Show loading state
+    generateBtn.disabled = true;
+    loader.classList.add('show');
+    outputSection.style.display = 'none';
+    errorMessage.classList.remove('show');
 
-  function extractSizes(s) {
-    // Try to pull discrete sizes like: 2T-3T-4T, 2T/3T/4T, or "Size: 2T, 3T, 4T"
-    if (!s) return [];
-    const candidates = (s.match(/\b([0-9]+[A-Za-z]*T?|[XSML]{1,3}|\d+(?:\/\d+)?)(?=[,\-\s\/]|$)/g) || [])
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    // Filter out obvious non-size tokens
-    const valid = candidates.filter((t) => {
-      if (/^\d{5,}$/.test(t)) return false; // long numbers (e.g., UPC)
-      if (/^\d+\/\d+$/.test(t)) return true; // like 12/14
-      if (/^[XSML]{1,3}$/.test(t)) return true; // S, M, L, XL, etc.
-      return /^[0-9]+[A-Za-z]*T?$/.test(t); // 2T, 3T, 4T, 10, 12, etc.
-    });
-
-    // Deduplicate while preserving order
-    return Array.from(new Set(valid));
-  }
-
-  // ---------- JSON builder ----------
-  function buildPrompt() {
-    const titleVal = (elTitle?.value || "").trim();
-    const descRaw  = (elDesc?.value || "").trim();
-    const imgVal   = (elImage?.value || "").trim();
-
-    const desc  = cleanedDescription(descRaw);
-    const sizes = extractSizes(descRaw) || extractSizes(titleVal);
-
-    return {
-      model: "nano-banana-v1",
-      meta: {
-        tool: "logiqfish-prompt-ui",
-        created_at: new Date().toISOString()
-      },
-      product: {
-        title: titleVal || "Untitled",
-        description: desc,
-        sizes: sizes,
-        category: "kids-apparel>sets>hoodie-jogger",
-        // brand: "S1OPE", // optional: fill if available
-      },
-      media: {
-        image_url: imgVal || null
-      },
-      personas: [
-        { age_group: "toddler", ethnicity: "Hispanic" },
-        { age_group: "toddler", ethnicity: "African American" }
-      ],
-      instructions: [
-        "Render garment on age-appropriate child models.",
-        "Respect diversity, realism, and platform safety policies.",
-        "Use provided image_url as the garment reference if present."
-      ],
-      output: { format: "json" }
-    };
-  }
-
-  // ---------- UI actions ----------
-  function pretty(obj) {
-    return JSON.stringify(obj, null, 2);
-  }
-
-  function handleGenerate() {
-    const data = buildPrompt();
-    outArea.value = pretty(data);
-  }
-
-  function showCopied() {
-    if (!copyOk) return;
-    copyOk.classList.add("show");
-    setTimeout(() => copyOk.classList.remove("show"), 2000);
-  }
-
-  function fallbackCopy(text) {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.left = "-9999px";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
     try {
-      document.execCommand("copy");
-    } catch (e) {
-      // ignore
-    }
-    document.body.removeChild(ta);
-    showCopied();
-  }
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_url: url
+        })
+      });
 
-  async function handleCopy() {
-    const text = outArea.value;
-    if (!text) return;
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(text);
-        showCopied();
-        return;
-      } catch (_) {
-        // fall through to fallback
+      const data = await response.json();
+
+      if (data.ok && data.prompt) {
+        // Display the generated prompt
+        jsonOutput.value = JSON.stringify(data.prompt, null, 2);
+        outputSection.style.display = 'block';
+        
+        // Scroll to output
+        outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        throw new Error(data.message || data.error || 'Failed to generate prompt');
       }
+    } catch (error) {
+      console.error('Error:', error);
+      showError(`Error: ${error.message}`);
+    } finally {
+      generateBtn.disabled = false;
+      loader.classList.remove('show');
     }
-    fallbackCopy(text);
   }
 
-  // ---------- wire events ----------
-  btnGen?.addEventListener("click", handleGenerate);
-  btnCopy?.addEventListener("click", handleCopy);
+  async function copyToClipboard() {
+    const text = jsonOutput.value;
+    
+    if (!text) {
+      showError('No prompt to copy');
+      return;
+    }
 
-  // First render
-  handleGenerate();
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      
+      showSuccess('Copied to clipboard! Now paste it into Google AI Studio.');
+    } catch (error) {
+      showError('Failed to copy. Please select and copy manually.');
+    }
+  }
+
+  // Event listeners
+  generateBtn.addEventListener('click', generatePrompt);
+  copyBtn.addEventListener('click', copyToClipboard);
+  
+  // Allow Enter key to generate
+  shopifyUrlInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      generatePrompt();
+    }
+  });
 })();
 
