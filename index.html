@@ -3,57 +3,252 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nano Banana JSON Prompt Generator</title>
+  <title>Shopify to Imagen Prompt Generator</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; padding: 24px; max-width: 960px; }
-    header { margin-bottom: 16px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    textarea { width: 100%; min-height: 220px; padding: 12px; }
-    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #111827; cursor: pointer; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
-    .success { display: none; color: #065f46; background: #ecfdf5; border: 1px solid #34d399; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
-    .success.show { display: inline-block; }
-    .muted { color: #6b7280; font-size: 14px; }
-    code.inline { background: #f3f4f6; padding: 2px 6px; border-radius: 6px; }
+    :root { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --primary: #667eea;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+    body { 
+      margin: 0; 
+      padding: 24px; 
+      max-width: 1200px; 
+      margin: 0 auto;
+      background: #f9fafb;
+    }
+    header { 
+      margin-bottom: 32px;
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+      color: white;
+      border-radius: 16px;
+    }
+    header h1 { margin: 0 0 8px 0; }
+    header p { margin: 0; opacity: 0.9; }
+    
+    .card { 
+      background: white;
+      border: 1px solid #e5e7eb; 
+      border-radius: 12px; 
+      padding: 24px; 
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .input-group {
+      margin-bottom: 16px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    textarea { 
+      width: 100%; 
+      min-height: 400px; 
+      padding: 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    
+    button { 
+      padding: 12px 24px; 
+      border-radius: 8px; 
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: #5568d3;
+      transform: translateY(-1px);
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-success:hover:not(:disabled) {
+      background: #059669;
+    }
+    
+    .message { 
+      display: none;
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    
+    .message.show { 
+      display: block;
+    }
+    
+    .message.success { 
+      color: #065f46; 
+      background: #d1fae5; 
+      border: 1px solid var(--success);
+    }
+    
+    .message.error {
+      color: #991b1b;
+      background: #fee2e2;
+      border: 1px solid var(--error);
+    }
+    
+    .loader {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f4f6;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    .loader.show {
+      display: inline-block;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .instructions {
+      background: #fffbeb;
+      border: 1px solid #fbbf24;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .instructions h3 {
+      margin: 0 0 12px 0;
+      color: #92400e;
+    }
+    
+    .instructions ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .instructions li {
+      margin-bottom: 8px;
+      color: #78350f;
+    }
+    
+    .instructions a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    .instructions a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) { 
+      body { padding: 16px; }
+      header { padding: 24px 16px; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Nano Banana JSON Prompt Generator</h1>
-    <p class="muted">Paste your existing HTML UI here (without inline &lt;script&gt;). This scaffold is ready for GitHub Pages.</p>
+    <h1>Shopify to Imagen Prompt Generator</h1>
+    <p>Automatically generate AI image prompts from any Shopify product URL</p>
   </header>
 
-  <main class="row">
+  <main>
     <section class="card">
-      <h2>Inputs</h2>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <label for="title" style="min-width:80px;">Title</label>
-        <input id="title" placeholder="e.g., Dress Prompt" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
+      <h2>Input</h2>
+      <div class="input-group">
+        <label for="shopifyUrl">Shopify Product URL</label>
+        <input 
+          id="shopifyUrl" 
+          type="url"
+          placeholder="https://yourstore.myshopify.com/products/product-name" 
+        />
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <label for="desc" style="min-width:80px;">Description</label>
-        <input id="desc" placeholder="e.g., Girls dress sizes 12, 18, 24; Hispanic & African American kids" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
+      
+      <div class="btn-group">
+        <button id="generateBtn" class="btn-primary">
+          Generate Prompt
+        </button>
+        <div class="loader" id="loader"></div>
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <label for="imageUrl" style="min-width:80px;">Image URL</label>
-        <input id="imageUrl" placeholder="https://example.com/item.jpg" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button id="generateBtn">Generate JSON</button>
-        <button id="copyBtn">Copy JSON</button>
-        <span id="copyOk" class="success">Copied!</span>
-      </div>
+      
+      <div id="errorMessage" class="message error"></div>
     </section>
 
-    <section class="card">
-      <h2>Output</h2>
-      <textarea id="jsonOutput" readonly placeholder="{ the JSON will appear here }"></textarea>
+    <section class="card" id="outputSection" style="display: none;">
+      <h2>Generated Prompt</h2>
+      <textarea id="jsonOutput" readonly></textarea>
+      
+      <div class="btn-group">
+        <button id="copyBtn" class="btn-success">
+          Copy to Clipboard
+        </button>
+      </div>
+      
+      <div id="successMessage" class="message success"></div>
+      
+      <div class="instructions">
+        <h3>How to Use This Prompt</h3>
+        <ol>
+          <li>Copy the JSON above using the button</li>
+          <li>Go to <a href="https://aistudio.google.com/prompts/new_chat" target="_blank">Google AI Studio</a></li>
+          <li>Click to upload an image and select the reference product image</li>
+          <li>Paste this JSON prompt into the text box</li>
+          <li>Click "Run" to generate your professional product photo</li>
+        </ol>
+      </div>
     </section>
   </main>
 
-  <!-- IMPORTANT: the script file must sit in the same folder and use this path -->
-  <script src="./prompt-generator.js?v=4"></script>
+  <script src="./prompt-generator.js"></script>
 </body>
 </html>
