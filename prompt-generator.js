@@ -110,33 +110,16 @@
     }
   }
 
-  async function downloadReferenceImage() {
+  function downloadReferenceImage() {
     if (!currentPrompt || !currentPrompt.reference_image) {
       showError('No reference image available');
       return;
     }
 
-    try {
-      const imageUrl = currentPrompt.reference_image;
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `reference-${currentPrompt.product_details.item.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.jpg`;
-      
-      document.body.appendChild(a);
-      a.click();
-      
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      showSuccess('Reference image downloaded!');
-    } catch (error) {
-      showError('Failed to download image. Try right-clicking the image URL.');
-    }
+    // Open image in new tab so user can right-click and save
+    const imageUrl = currentPrompt.reference_image;
+    window.open(imageUrl, '_blank');
+    showSuccess('Reference image opened in new tab. Right-click to save it.');
   }
 
   generateBtn.addEventListener('click', generatePrompt);
