@@ -68,7 +68,7 @@
     
     .form-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
     }
     
@@ -76,6 +76,8 @@
       .form-row {
         grid-template-columns: 1fr;
       }
+      body { padding: 16px; }
+      header { padding: 24px 16px; }
     }
     
     textarea { 
@@ -232,6 +234,15 @@
       
       <div class="form-row">
         <div class="input-group">
+          <label for="modelCount">Number of Models</label>
+          <select id="modelCount">
+            <option value="1">1 Model</option>
+            <option value="2" selected>2 Models</option>
+          </select>
+          <p class="help-text">How many models to include</p>
+        </div>
+        
+        <div class="input-group">
           <label for="ethnicity1">Model 1 Ethnicity</label>
           <select id="ethnicity1">
             <option value="Hispanic">Hispanic/Latino</option>
@@ -240,7 +251,7 @@
             <option value="Asian">Asian</option>
             <option value="Mixed">Mixed Ethnicity</option>
           </select>
-          <p class="help-text">First child model appearance</p>
+          <p class="help-text">First model appearance</p>
         </div>
         
         <div class="input-group">
@@ -252,7 +263,7 @@
             <option value="Asian">Asian</option>
             <option value="Mixed">Mixed Ethnicity</option>
           </select>
-          <p class="help-text">Second child model appearance</p>
+          <p class="help-text">Second model (only if 2 models selected)</p>
         </div>
       </div>
       
