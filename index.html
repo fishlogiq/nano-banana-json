@@ -4,11 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nano Banana JSON Prompt Generator</title>
-  <!--
-    GitHub Pages notes:
-    - Put ALL JavaScript in /prompt-generator.js (no inline <script> tags).
-    - This avoids CSP issues on some hosts and keeps things clean.
-  -->
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; padding: 24px; max-width: 960px; }
@@ -27,16 +22,12 @@
 <body>
   <header>
     <h1>Nano Banana JSON Prompt Generator</h1>
-    <p class="muted">
-      Paste your existing HTML UI here (without inline <script>) and wire events in <code class="inline">prompt-generator.js</code>. 
-      This scaffold is ready for GitHub Pages.
-    </p>
+    <p class="muted">Paste your existing HTML UI here (without inline &lt;script&gt;). This scaffold is ready for GitHub Pages.</p>
   </header>
 
   <main class="row">
     <section class="card">
       <h2>Inputs</h2>
-      <!-- Replace this stub with your real form/controls -->
       <div style="display:flex; gap:8px; margin-bottom:12px;">
         <label for="title" style="min-width:80px;">Title</label>
         <input id="title" placeholder="e.g., Dress Prompt" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
@@ -49,7 +40,7 @@
         <label for="imageUrl" style="min-width:80px;">Image URL</label>
         <input id="imageUrl" placeholder="https://example.com/item.jpg" style="flex:1; padding:8px; border:1px solid #e5e7eb; border-radius:8px;" />
       </div>
-      <div style="display:flex; gap:8px; flex-wrap: wrap;">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button id="generateBtn">Generate JSON</button>
         <button id="copyBtn">Copy JSON</button>
         <span id="copyOk" class="success">Copied!</span>
@@ -62,7 +53,7 @@
     </section>
   </main>
 
-  <!-- Load your JavaScript (no inline <script>) -->
+  <!-- IMPORTANT: the script file must sit in the same folder and use this path -->
   <script src="./prompt-generator.js"></script>
 </body>
 </html>
