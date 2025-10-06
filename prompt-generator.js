@@ -5,6 +5,7 @@
 
   // DOM elements
   const shopifyUrlInput = document.getElementById('shopifyUrl');
+  const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
   const ethnicity2Select = document.getElementById('ethnicity2');
   const generateBtn = document.getElementById('generateBtn');
@@ -55,7 +56,8 @@
         body: JSON.stringify({
           product_url: url,
           ethnicity1: ethnicity1Select.value,
-          ethnicity2: ethnicity2Select.value
+          ethnicity2: ethnicity2Select.value,
+          model_count: parseInt(modelCountSelect.value)
         })
       });
 
