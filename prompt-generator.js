@@ -5,6 +5,8 @@
 
   // DOM elements
   const shopifyUrlInput = document.getElementById('shopifyUrl');
+  const ethnicity1Select = document.getElementById('ethnicity1');
+  const ethnicity2Select = document.getElementById('ethnicity2');
   const generateBtn = document.getElementById('generateBtn');
   const copyBtn = document.getElementById('copyBtn');
   const jsonOutput = document.getElementById('jsonOutput');
@@ -33,7 +35,6 @@
       return;
     }
 
-    // More flexible URL validation - just check for /products/ path
     if (!url.includes('/products/')) {
       showError('Please enter a valid product URL (must contain /products/)');
       return;
@@ -59,8 +60,21 @@
       const data = await response.json();
 
       if (data.ok && data.prompt) {
-        // Display the generated prompt
-        jsonOutput.value = JSON.stringify(data.prompt, null, 2);
+        // Modify the prompt with user-selected ethnicities
+        const modifiedPrompt = { ...data.prompt };
+        
+        // Update model specifications if they exist (for kids products)
+        if (modifiedPrompt.model_specifications && modifiedPrompt.model_specifications.subjects) {
+          const ethnicity1 = ethnicity1Select.value;
+          const ethnicity2 = ethnicity2Select.value;
+          
+          modifiedPrompt.model_specifications.ethnicity_model_1 = ethnicity1;
+          modifiedPrompt.model_specifications.ethnicity_model_2 = ethnicity2;
+          modifiedPrompt.model_specifications.subjects = `two toddler children (ages 2-4 years), one ${ethnicity1} and one ${ethnicity2}`;
+        }
+        
+        // Display the modified prompt
+        jsonOutput.value = JSON.stringify(modifiedPrompt, null, 2);
         outputSection.style.display = 'block';
         
         // Scroll to output
