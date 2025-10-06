@@ -3,18 +3,20 @@
 
   const API_URL = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
 
-  // DOM elements
   const shopifyUrlInput = document.getElementById('shopifyUrl');
   const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
   const ethnicity2Select = document.getElementById('ethnicity2');
   const generateBtn = document.getElementById('generateBtn');
   const copyBtn = document.getElementById('copyBtn');
+  const downloadRefBtn = document.getElementById('downloadRefBtn');
   const jsonOutput = document.getElementById('jsonOutput');
   const loader = document.getElementById('loader');
   const errorMessage = document.getElementById('errorMessage');
   const successMessage = document.getElementById('successMessage');
   const outputSection = document.getElementById('outputSection');
+
+  let currentPrompt = null;
 
   function showError(message) {
     errorMessage.textContent = message;
@@ -41,7 +43,6 @@
       return;
     }
 
-    // Show loading state
     generateBtn.disabled = true;
     loader.classList.add('show');
     outputSection.style.display = 'none';
@@ -64,11 +65,9 @@
       const data = await response.json();
 
       if (data.ok && data.prompt) {
-        // Display the generated prompt
+        currentPrompt = data.prompt;
         jsonOutput.value = JSON.stringify(data.prompt, null, 2);
         outputSection.style.display = 'block';
-        
-        // Scroll to output
         outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         throw new Error(data.message || data.error || 'Failed to generate prompt');
@@ -94,7 +93,6 @@
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
       } else {
-        // Fallback for older browsers
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
@@ -112,11 +110,39 @@
     }
   }
 
-  // Event listeners
+  async function downloadReferenceImage() {
+    if (!currentPrompt || !currentPrompt.reference_image) {
+      showError('No reference image available');
+      return;
+    }
+
+    try {
+      const imageUrl = currentPrompt.reference_image;
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `reference-${currentPrompt.product_details.item.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.jpg`;
+      
+      document.body.appendChild(a);
+      a.click();
+      
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      showSuccess('Reference image downloaded!');
+    } catch (error) {
+      showError('Failed to download image. Try right-clicking the image URL.');
+    }
+  }
+
   generateBtn.addEventListener('click', generatePrompt);
   copyBtn.addEventListener('click', copyToClipboard);
+  downloadRefBtn.addEventListener('click', downloadReferenceImage);
   
-  // Allow Enter key to generate
   shopifyUrlInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       generatePrompt();
