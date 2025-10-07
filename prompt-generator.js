@@ -104,22 +104,81 @@
         document.body.removeChild(textarea);
       }
       
-      showSuccess('Copied to clipboard! Now paste it into Google AI Studio.');
+      showSuccess('✅ Copied to clipboard! Now paste it into Google AI Studio.');
     } catch (error) {
       showError('Failed to copy. Please select and copy manually.');
     }
   }
 
-  function downloadReferenceImage() {
+  async function downloadReferenceImage() {
     if (!currentPrompt || !currentPrompt.reference_image) {
       showError('No reference image available');
       return;
     }
 
-    // Open image in new tab so user can right-click and save
     const imageUrl = currentPrompt.reference_image;
-    window.open(imageUrl, '_blank');
-    showSuccess('Reference image opened in new tab. Right-click to save it.');
+    
+    // Extract filename from URL
+    const urlParts = imageUrl.split('/');
+    const filenameWithParams = urlParts[urlParts.length - 1];
+    const filename = filenameWithParams.split('?')[0] || 'reference-image.jpg';
+    
+    // Show loading state
+    downloadRefBtn.disabled = true;
+    const originalText = downloadRefBtn.textContent;
+    downloadRefBtn.textContent = 'Downloading...';
+    
+    try {
+      // Fetch the image as a blob to bypass CORS and force download
+      const response = await fetch(imageUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      
+      const blob = await response.blob();
+      
+      // Create blob URL and trigger download
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.style.display = 'none';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up blob URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      
+      showSuccess('✅ Reference image downloaded successfully!');
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      
+      // Fallback: try using download attribute directly
+      try {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showSuccess('Download initiated. If it opens in browser, right-click and "Save As".');
+      } catch (fallbackError) {
+        // Last resort: open in new tab
+        window.open(imageUrl, '_blank');
+        showError('⚠️ Direct download blocked. Image opened in new tab - right-click to save.');
+      }
+    } finally {
+      downloadRefBtn.disabled = false;
+      downloadRefBtn.textContent = originalText;
+    }
   }
 
   generateBtn.addEventListener('click', generatePrompt);
