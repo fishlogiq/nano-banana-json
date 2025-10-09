@@ -2,7 +2,7 @@
   "use strict";
 
   const API_URL = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
-
+  
   const shopifyUrlInput = document.getElementById('shopifyUrl');
   const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
