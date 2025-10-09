@@ -7,6 +7,12 @@
   const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
   const ethnicity2Select = document.getElementById('ethnicity2');
+  const ageCategorySelect = document.getElementById('ageCategory');
+  const showMovementCheckbox = document.getElementById('showMovement');
+  const addSneakersCheckbox = document.getElementById('addSneakers');
+  const addSocksCheckbox = document.getElementById('addSocks');
+  const addShoesCheckbox = document.getElementById('addShoes');
+  const addWorkBootsCheckbox = document.getElementById('addWorkBoots');
   const generateBtn = document.getElementById('generateBtn');
   const copyBtn = document.getElementById('copyBtn');
   const downloadRefBtn = document.getElementById('downloadRefBtn');
@@ -49,17 +55,46 @@
     errorMessage.classList.remove('show');
 
     try {
+      // Build request body with all options
+      const requestBody = {
+        product_url: url,
+        ethnicity1: ethnicity1Select.value,
+        ethnicity2: ethnicity2Select.value,
+        model_count: parseInt(modelCountSelect.value)
+      };
+
+      // Add age category only if selected
+      if (ageCategorySelect.value) {
+        requestBody.age_category = ageCategorySelect.value;
+      }
+
+      // Add footwear options if checked
+      if (addSneakersCheckbox.checked) {
+        requestBody.add_sneakers = true;
+      }
+      if (addSocksCheckbox.checked) {
+        requestBody.add_socks = true;
+      }
+      if (addShoesCheckbox.checked) {
+        requestBody.add_shoes = true;
+      }
+      if (addWorkBootsCheckbox.checked) {
+        requestBody.add_work_boots = true;
+      }
+
+      // Add movement option if checked
+      if (showMovementCheckbox.checked) {
+        requestBody.show_movement = true;
+      }
+
+      console.log('Sending request:', requestBody);
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          product_url: url,
-          ethnicity1: ethnicity1Select.value,
-          ethnicity2: ethnicity2Select.value,
-          model_count: parseInt(modelCountSelect.value)
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();
