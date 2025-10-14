@@ -20,6 +20,7 @@
     .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none;border-color:var(--primary)}
     .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     @media (max-width:900px){.form-row-2{grid-template-columns:1fr}}
+    .checkbox{display:flex;align-items:center;gap:8px}
     .checkbox-group{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px}
     .btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
     button{padding:12px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
@@ -30,6 +31,7 @@
     .help-text{font-size:13px;color:var(--muted);margin-top:4px}
     textarea.code{min-height:360px;font-family:ui-monospace,Menlo,Consolas,monospace;background:#111827;color:#d1d5db}
     [data-tab]{display:none}.active{display:block}
+    .preview{border:1px dashed #e5e7eb;border-radius:12px;padding:16px;background:#fff}
   </style>
 </head>
 <body>
@@ -43,7 +45,7 @@
   </header>
 
   <main>
-    <!-- ========== IMAGE PROMPT (unchanged) ========== -->
+    <!-- ================= IMAGE PROMPT (unchanged) ================= -->
     <section class="card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
       <h2>Imagen Prompt from Shopify URL</h2>
 
@@ -96,11 +98,11 @@
       </div>
 
       <div class="checkbox-group">
-        <label><input type="checkbox" id="showMovement" /> Show Movement</label>
-        <label><input type="checkbox" id="addSneakers" /> Sneakers</label>
-        <label><input type="checkbox" id="addSocks" /> Socks</label>
-        <label><input type="checkbox" id="addShoes" /> Casual Shoes</label>
-        <label><input type="checkbox" id="addWorkBoots" /> Work Boots</label>
+        <label class="checkbox"><input type="checkbox" id="showMovement" /> Show Movement</label>
+        <label class="checkbox"><input type="checkbox" id="addSneakers" /> Sneakers</label>
+        <label class="checkbox"><input type="checkbox" id="addSocks" /> Socks</label>
+        <label class="checkbox"><input type="checkbox" id="addShoes" /> Casual Shoes</label>
+        <label class="checkbox"><input type="checkbox" id="addWorkBoots" /> Work Boots</label>
       </div>
 
       <div class="btn-group">
@@ -120,7 +122,7 @@
       </section>
     </section>
 
-    <!-- ========== DESCRIPTION (direct call) ========== -->
+    <!-- ================= DESCRIPTION (direct call to Cloud Run) ================= -->
     <section class="card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
       <h2>Shopify Description Generator</h2>
 
@@ -139,6 +141,11 @@
             <option value="json">JSON</option>
           </select>
         </div>
+        <div class="input-group">
+          <label class="checkbox" style="margin-top:30px;">
+            <input type="checkbox" id="showPreview" /> Show preview
+          </label>
+        </div>
       </div>
 
       <div class="btn-group">
@@ -149,19 +156,20 @@
       <section class="card" id="descOutWrap" style="display:none;">
         <h2>Output</h2>
         <textarea id="descOutput" class="code" readonly></textarea>
+        <div id="descPreview" class="preview" style="display:none;margin-top:16px;"></div>
       </section>
       <div id="descMsg" style="display:none;margin-top:8px;color:#065f46;"></div>
     </section>
   </main>
 
-  <!-- Image Prompt JS (unchanged) -->
+  <!-- Image Prompt JS -->
   <script src="./prompt-generator.js"></script>
 
   <script>
-    // --- Tabs ---
+    // ---------- Tabs ----------
     const tabs = { image: document.getElementById('tab-image'), desc: document.getElementById('tab-desc') };
     const btnImage = document.getElementById('tabbtn-image');
-    const btnDesc = document.getElementById('tabbtn-desc');
+    const btnDesc  = document.getElementById('tabbtn-desc');
     function selectTab(which){
       Object.values(tabs).forEach(el => el.classList.remove('active'));
       tabs[which].classList.add('active');
@@ -169,39 +177,33 @@
       btnDesc.setAttribute('aria-selected', which==='desc');
     }
     btnImage.addEventListener('click', () => selectTab('image'));
-    btnDesc.addEventListener('click', () => selectTab('desc'));
+    btnDesc .addEventListener('click', () => selectTab('desc'));
     selectTab('image');
 
-    // --- Description: direct call to Cloud Function ---
+    // ---------- Description: direct call ----------
     const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app'; // your endpoint
 
-    // tiny markdown→html (lists + bold + paragraphs) so we can show HTML if backend returns MD
-    function mdToHtml(md){
-      let html = md.trim();
-      html = html.replace(/\r\n/g, '\n');
-      // features list
-      html = html.replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>');
-      html = html.replace(/(?:<li>[\s\S]*?<\/li>)/g, m => `<ul>${m}</ul>`);
-      // bold **x**
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      // paragraphs
-      html = html.split(/\n{2,}/).map(p => {
-        if (p.startsWith('<ul>')) return p; // already wrapped
-        return `<p>${p.replace(/\n/g,' ')}</p>`;
-      }).join('\n');
-      return html;
+    function $(id){ return document.getElementById(id); }
+    const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn');
+    const out = $('descOutput'), outWrap = $('descOutWrap'), msg = $('descMsg');
+    const preview = $('descPreview'), showPreview = $('showPreview');
+
+    // no regex conversion; we trust your API to give markdown & html
+    function buildOutputs(outObj){
+      // normalize keys
+      const title = outObj.title || outObj.product_title || '';
+      const md  = outObj.description_markdown || outObj.product_description || '';
+      const html = outObj.description_html || '';
+
+      return { title, md, html };
     }
 
-    function $(id){ return document.getElementById(id); }
-    const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn'),
-          outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
-
     genDescBtn.addEventListener('click', async () => {
-      const url = $('descUrl').value.trim();
+      const url  = $('descUrl').value.trim();
       const want = $('descFormat').value;
       if (!url || !url.includes('/products/')) { alert('Enter a valid Shopify product URL'); return; }
 
-      outWrap.style.display = 'none'; msg.style.display = 'none'; out.value = '';
+      outWrap.style.display = 'none'; preview.style.display = 'none'; msg.style.display = 'none'; out.value = '';
 
       try {
         const res = await fetch(API_PRODUCT, {
@@ -212,14 +214,24 @@
         let data; try { data = JSON.parse(text); } catch { throw new Error('Non-JSON response from API'); }
 
         const outObj = data.outputs || data;
-        const title = outObj.product_title || outObj.title || '';
-        const md    = outObj.product_description || outObj.description_md || '';
+        const { title, md, html } = buildOutputs(outObj);
 
-        // Build outputs
-        const html  = outObj.description_html || mdToHtml(md);
-        const json  = { title, description_markdown: md, description_html: html };
+        // choose what to show in the textarea for copying
+        if (want === 'json') {
+          out.value = JSON.stringify({ title, description_markdown: md, description_html: html }, null, 2);
+        } else if (want === 'md') {
+          out.value = md;
+        } else { // html
+          out.value = html || md; // fallback to md if html missing
+        }
 
-        out.value = (want === 'md') ? md : (want === 'json') ? JSON.stringify(json, null, 2) : html;
+        // optional visual preview (renders HTML; if MD selected we preview HTML version)
+        if (showPreview.checked) {
+          const htmlForPreview = (want === 'md') ? (html || md) : (html || out.value);
+          preview.innerHTML = htmlForPreview;
+          preview.style.display = 'block';
+        }
+
         outWrap.style.display = 'block';
         msg.textContent = 'Generated from Cloud Function.';
         msg.style.display = 'block';
@@ -230,11 +242,11 @@
     });
 
     copyDescBtn.addEventListener('click', async () => {
-      if(!out.value) return;
+      if (!out.value) return;
       await navigator.clipboard.writeText(out.value);
       msg.textContent = 'Copied!';
       msg.style.display = 'block';
-      setTimeout(()=> msg.style.display='none', 1500);
+      setTimeout(() => msg.style.display = 'none', 1500);
     });
   </script>
 </body>
