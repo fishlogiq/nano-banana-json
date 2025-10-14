@@ -7,10 +7,7 @@
   <style>
     :root { 
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      --primary: #667eea;
-      --success: #10b981;
-      --error: #ef4444;
-      --muted: #6b7280;
+      --primary: #667eea; --success: #10b981; --error: #ef4444; --muted: #6b7280;
     }
     body { margin:0; padding:24px; max-width:1200px; margin:0 auto; background:#f9fafb; }
     header { margin-bottom:24px; text-align:center; padding:28px 20px;
@@ -23,7 +20,7 @@
     h2{margin:0 0 12px 0; color:#1f2937; font-size:20px; border-bottom:2px solid #e5e7eb; padding-bottom:10px}
     .input-group{margin-bottom:16px}
     .input-group label{display:block; margin-bottom:8px; font-weight:600; color:#374151}
-    .input-group input,.input-group select, .input-group textarea{
+    .input-group input,.input-group select,.input-group textarea{
       width:100%; padding:12px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px; background:#fff
     }
     .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none; border-color:var(--primary)}
@@ -43,7 +40,6 @@
     .loader{display:none; width:20px; height:20px; border:3px solid #f3f4f6; border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .help-text{font-size:13px; color:var(--muted); margin-top:4px}
-    /* tabs visibility */
     [data-tab]{display:none}
     [data-tab].active{display:block}
   </style>
@@ -159,65 +155,71 @@
     <section class="tool card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
       <h2>Shopify Description Generator</h2>
 
+      <div class="input-group">
+        <label for="descUrl">Shopify Product URL (optional)</label>
+        <input id="descUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
+        <p class="help-text">If left empty, we’ll use the URL from the Image tab.</p>
+      </div>
+
       <div class="btn-group" style="margin-bottom:8px;">
-        <button id="prefillBtn" class="btn-primary">Prefill from Shopify URL</button>
+        <button id="prefillBtn" class="btn-primary" onclick="prefillFromShopifyUrl()">Prefill from Shopify URL</button>
       </div>
 
       <div class="input-group">
         <label for="descTitle">Product Title</label>
-        <input id="descTitle" placeholder="Toddler Girls Butterfly Hoodie & Legging Set" />
+        <input id="descTitle" value="Toddler Girls Butterfly Hoodie & Legging Set" />
       </div>
 
       <div class="form-row-2">
         <div class="input-group">
           <label for="descBrand">Brand</label>
-          <input id="descBrand" placeholder="Girls Pink" />
+          <input id="descBrand" value="Girls Pink" />
         </div>
         <div class="input-group">
           <label for="descSKU">Style/SKU</label>
-          <input id="descSKU" placeholder="7389302" />
+          <input id="descSKU" value="7389302" />
         </div>
       </div>
 
       <div class="form-row-2">
         <div class="input-group">
           <label for="descSizes">Sizes (comma separated)</label>
-          <input id="descSizes" placeholder="2T, 3T, 4T" />
+          <input id="descSizes" value="2T, 3T, 4T" />
         </div>
         <div class="input-group">
           <label for="descOrigin">Country of Origin</label>
-          <input id="descOrigin" placeholder="Made in China" />
+          <input id="descOrigin" value="Made in China" />
         </div>
       </div>
 
       <div class="form-row-2">
         <div class="input-group">
           <label for="descTop">Top Fabric</label>
-          <input id="descTop" placeholder="100% Polyester" />
+          <input id="descTop" value="100% Polyester" />
         </div>
         <div class="input-group">
           <label for="descBottom">Bottom Fabric</label>
-          <input id="descBottom" placeholder="94% Polyester, 6% Spandex" />
+          <input id="descBottom" value="94% Polyester, 6% Spandex" />
         </div>
       </div>
 
       <div class="input-group">
         <label for="descCare">Care</label>
-        <input id="descCare" placeholder="Machine wash cold; use mild soap; no bleach; wash dark colors separately; reshape and dry flat" />
+        <input id="descCare" value="Machine wash cold; use mild soap; no bleach; wash dark colors separately; reshape and dry flat" />
       </div>
 
       <div class="input-group">
         <label for="descFeatures">Features (one per line)</label>
-        <textarea id="descFeatures" rows="6" placeholder="- Butterfly chest screen print
+        <textarea id="descFeatures" rows="6">- Butterfly chest screen print
 - Hooded fleece pullover
-- Matching animal-print leggings"></textarea>
+- Matching animal-print leggings</textarea>
       </div>
 
       <div class="form-row-2">
         <div class="input-group">
           <label for="descTone">Tone</label>
           <select id="descTone">
-            <option>Concise</option>
+            <option selected>Concise</option>
             <option>Playful</option>
             <option>Warm</option>
             <option>Wholesale-focused</option>
@@ -226,7 +228,7 @@
         <div class="input-group">
           <label for="descFormat">Output</label>
           <select id="descFormat">
-            <option value="html">HTML (Shopify)</option>
+            <option value="html" selected>HTML (Shopify)</option>
             <option value="md">Markdown</option>
           </select>
         </div>
@@ -245,19 +247,15 @@
     </section>
   </main>
 
-  <!-- Your existing JS for IMAGE PROMPT -->
+  <!-- Image Prompt JS -->
   <script src="./prompt-generator.js"></script>
 
-  <!-- Tabs + Description script -->
+  <!-- Tabs + Description + Prefill -->
   <script>
     // --- tabs ---
-    const tabs = {
-      image: document.getElementById('tab-image'),
-      desc: document.getElementById('tab-desc')
-    };
+    const tabs = { image: document.getElementById('tab-image'), desc: document.getElementById('tab-desc') };
     const btnImage = document.getElementById('tabbtn-image');
     const btnDesc = document.getElementById('tabbtn-desc');
-
     function selectTab(which){
       Object.values(tabs).forEach(el => el.classList.remove('active'));
       tabs[which].classList.add('active');
@@ -265,15 +263,12 @@
       btnDesc.setAttribute('aria-selected', which==='desc' ? 'true' : 'false');
     }
     btnImage.addEventListener('click', () => selectTab('image'));
-    btnDesc.addEventListener('click', () => selectTab('desc'));
+    btnDesc.addEventListener('click', () => { selectTab('desc'); prefillFromShopifyUrl(); });
     selectTab('image'); // default
 
-    // --- description generator helpers ---
+    // --- helpers ---
     const $ = id => document.getElementById(id);
-
-    function sanitizeLines(s=''){
-      return s.split(/\r?\n/).map(v => v.replace(/^\s*[-*]\s?/, '').trim()).filter(Boolean);
-    }
+    function sanitizeLines(s=''){ return s.split(/\r?\n/).map(v => v.replace(/^\s*[-*]\s?/, '').trim()).filter(Boolean); }
     function descToHTML(d){
       const feats = d.features.map(f => `<li>${f}</li>`).join('');
       return `
@@ -292,28 +287,28 @@ ${d.sizes ? `<p><strong>Sizes:</strong> ${d.sizes}</p>` : ''}
       `.trim();
     }
     function descToMD(d){
-      const feats = d.features.map(f => `- ${f}`).join('\\n');
+      const feats = d.features.map(f => `- ${f}`).join('\n');
       return `${d.lead}
 
 **Features & Details**
 ${feats}
 
-${d.sizes ? `**Sizes:** ${d.sizes}\\n` : ''}${d.top ? `**Top Fabric:** ${d.top}\\n` : ''}${d.bottom ? `**Bottom Fabric:** ${d.bottom}\\n` : ''}${d.care ? `**Care:** ${d.care}\\n` : ''}${d.brand ? `**Brand:** ${d.brand}\\n` : ''}${d.sku ? `**Style/SKU:** ${d.sku}\\n` : ''}${d.origin ? `**Country of Origin:** ${d.origin}\\n` : ''}
+${d.sizes ? `**Sizes:** ${d.sizes}\n` : ''}${d.top ? `**Top Fabric:** ${d.top}\n` : ''}${d.bottom ? `**Bottom Fabric:** ${d.bottom}\n` : ''}${d.care ? `**Care:** ${d.care}\n` : ''}${d.brand ? `**Brand:** ${d.brand}\n` : ''}${d.sku ? `**Style/SKU:** ${d.sku}\n` : ''}${d.origin ? `**Country of Origin:** ${d.origin}\n` : ''}
 
 Great for school, playdates, and everyday wear. Available wholesale by the dozen.`.trim();
     }
     function buildLead(title, tone){
       if(!title) return 'Comfort meets everyday style.';
-      const t = tone.toLowerCase();
+      const t = (tone||'').toLowerCase();
       if(t.includes('playful')) return `Add playful comfort with ${title}.`;
-      if(t.includes('warm')) return `Easy, cozy, and ready for everyday—${title}.`;
+      if(t.includes('warm'))    return `Easy, cozy, and ready for everyday—${title}.`;
       if(t.includes('wholesale')) return `${title}: fast-moving style built for volume buyers.`;
       return `${title} pairs comfort and style with a coordinated look.`;
     }
 
-    // Generate description
+    // --- Generate description ---
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn'),
-      outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
+          outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
 
     genDescBtn.addEventListener('click', () => {
       const data = {
@@ -347,38 +342,40 @@ Great for school, playdates, and everyday wear. Available wholesale by the dozen
       setTimeout(()=> msg.style.display='none', 1500);
     });
 
-    // Prefill from Shopify URL via Cloud Run (second service)
+    // --- Prefill from Cloud Run (global so onclick works) ---
+    window.API_PRODUCT = window.API_PRODUCT || 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
     async function prefillFromShopifyUrl() {
-      const url = $('shopifyUrl').value.trim();
-      if (!url || !url.includes('/products/')) return;
-
+      const url = ($('descUrl')?.value || $('shopifyUrl')?.value || '').trim();
+      console.log('[Prefill] start', { url, API_PRODUCT: window.API_PRODUCT });
+      if (!url || !url.includes('/products/')) { return; }
       try {
         const res = await fetch(window.API_PRODUCT, {
-          method: 'POST',
+          method: 'POST', mode: 'cors',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ product_url: url })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || data.message || 'Fetch failed');
-
-        $('descTitle').value   = data.title || '';
-        $('descBrand').value   = data.brand || '';
-        $('descSKU').value     = data.sku || '';
-        $('descSizes').value   = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
-        $('descOrigin').value  = data.origin || '';
-        $('descTop').value     = data.top_fabric || '';
-        $('descBottom').value  = data.bottom_fabric || '';
-        $('descCare').value    = data.care || '';
+        const text = await res.text();
+        console.log('[Prefill] status', res.status, 'body:', text.slice(0,300));
+        let data; try { data = JSON.parse(text); } catch(e){ throw new Error('Non-JSON response from API'); }
+        if (!res.ok) throw new Error(data.error || data.message || ('HTTP '+res.status));
+        $('descTitle').value    = data.title || '';
+        $('descBrand').value    = data.brand || '';
+        $('descSKU').value      = data.sku || '';
+        $('descSizes').value    = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
+        $('descOrigin').value   = data.origin || '';
+        $('descTop').value      = data.top_fabric || '';
+        $('descBottom').value   = data.bottom_fabric || '';
+        $('descCare').value     = data.care || '';
         $('descFeatures').value = (data.features || []).map(f => `- ${f}`).join('\n');
-      } catch (e) {
-        console.warn('Prefill error:', e.message);
+        console.log('[Prefill] filled fields ✅');
+      } catch (err) {
+        console.error('[Prefill] failed ❌', err);
+        alert('Prefill error: ' + err.message);
       }
     }
-    document.getElementById('prefillBtn').addEventListener('click', prefillFromShopifyUrl);
-    document.getElementById('tabbtn-desc').addEventListener('click', prefillFromShopifyUrl);
-    $('shopifyUrl').addEventListener('change', () => {
-      if (tabs.desc.classList.contains('active')) prefillFromShopifyUrl();
-    });
+    window.prefillFromShopifyUrl = prefillFromShopifyUrl; // ensure global
+    $('descUrl').addEventListener('change', prefillFromShopifyUrl);
+    $('descUrl').addEventListener('paste', () => setTimeout(prefillFromShopifyUrl, 0));
   </script>
 </body>
 </html>
