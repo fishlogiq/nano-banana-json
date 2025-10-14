@@ -43,7 +43,7 @@
   </header>
 
   <main>
-    <!-- ================= IMAGE PROMPT (unchanged) ================= -->
+    <!-- ================= IMAGE PROMPT ================= -->
     <section class="card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
       <h2>Imagen Prompt from Shopify URL</h2>
 
@@ -120,7 +120,7 @@
       </section>
     </section>
 
-    <!-- ================= DESCRIPTION (direct call to Cloud Run) ================= -->
+    <!-- ================= DESCRIPTION ================= -->
     <section class="card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
       <h2>Shopify Description Generator</h2>
 
@@ -160,7 +160,7 @@
     </section>
   </main>
 
-  <!-- Image Prompt JS (unchanged) -->
+  <!-- Image Prompt JS -->
   <script src="./prompt-generator.js"></script>
 
   <script>
@@ -179,30 +179,21 @@
     selectTab('image');
 
     // ---------- Description: direct call ----------
-    const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app'; // your endpoint
+    const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
     const $ = id => document.getElementById(id);
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn');
     const out = $('descOutput'), outWrap = $('descOutWrap'), msg = $('descMsg');
     const preview = $('descPreview'), showPreview = $('showPreview');
 
-    // Minimal Markdown -> HTML for preview fallback (when API returns only MD)
+    // Minimal Markdown -> HTML for preview fallback
     function mdToHtml(md){
       if (!md) return '';
       let h = md.replace(/\r\n/g, '\n');
-
-      // escape HTML-ish things first (basic)
       h = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-      // bold/italic
       h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-      // lists
       h = h.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
-      // group consecutive <li> blocks into <ul>
-      h = h.replace(/(?:<li>[\s\S]*?<\/li>)(?:(?:\n)?(?!<li>))/g, (m)=>`<ul>${m}</ul>`);
-
-      // line breaks & paragraphs
+      h = h.replace(/(<li>[\s\S]*?<\/li>)(?:(?:\n)?(?!<li>))/g, (m)=>`<ul>${m}</ul>`);
       h = h.split(/\n{2,}/).map(p => {
         if (p.startsWith('<ul>')) return p;
         return `<p>${p.replace(/\n/g,' ')}</p>`;
@@ -214,19 +205,15 @@
     function normalizeApi(outObj){
       const title = outObj.title || outObj.product_title || '';
       const md = outObj.description_markdown || outObj.product_description || '';
-      // Prefer API's HTML; if missing, build from MD for preview/copy
       const html = outObj.description_html || mdToHtml(md);
 
-      // SEO fields (use API if provided, else derive)
       let seoTitle = outObj.seo_title || '';
-      let seoDesc  = outObj.seo_description || '';
+      let seoDesc  = outObj.seo_description || outObj.seo_meta_description || '';
 
-      if (!seoTitle) {
-        const base = title || md.replace(/\*\*(.+?)\*\*/g,'$1').split('\n')[0];
-        seoTitle = base.trim().slice(0, 60);
+      if (!seoTitle && title) {
+        seoTitle = title.slice(0, 60);
       }
-      if (!seoDesc) {
-        // take first sentence-ish from MD, strip ** and bullets, limit ~155 chars
+      if (!seoDesc && md) {
         const plain = md
           .replace(/\*\*(.+?)\*\*/g,'$1')
           .replace(/^\s*-\s+/gm,'')
@@ -256,7 +243,7 @@
         const apiPayload = data.outputs || data;
         const { title, md, html, seoTitle, seoDesc } = normalizeApi(apiPayload);
 
-        // keep all three outputs in sync
+        // Create complete output object
         const jsonOut = {
           title,
           seo_title: seoTitle,
@@ -265,16 +252,19 @@
           description_html: html
         };
 
+        // Format output based on selection
         if (want === 'json') {
           out.value = JSON.stringify(jsonOut, null, 2);
         } else if (want === 'md') {
-          out.value = md;
+          // Format markdown with all fields
+          out.value = `TITLE:\n${title}\n\nSEO TITLE:\n${seoTitle}\n\nSEO DESCRIPTION:\n${seoDesc}\n\nDESCRIPTION:\n${md}`;
         } else { // html
-          out.value = html;
+          // Format HTML with all fields as HTML comments + content
+          out.value = `<!-- TITLE -->\n${title}\n\n<!-- SEO TITLE -->\n${seoTitle}\n\n<!-- SEO DESCRIPTION -->\n${seoDesc}\n\n<!-- DESCRIPTION HTML -->\n${html}`;
         }
 
         if (showPreview.checked) {
-          preview.innerHTML = html; // always render HTML version
+          preview.innerHTML = `<h3>${title}</h3><p><strong>SEO Title:</strong> ${seoTitle}</p><p><strong>SEO Desc:</strong> ${seoDesc}</p><hr>${html}`;
           preview.style.display = 'block';
         }
 
@@ -284,6 +274,7 @@
       } catch (e) {
         msg.textContent = 'Error: ' + e.message;
         msg.style.display = 'block';
+        msg.style.color = '#b91c1c';
       }
     });
 
@@ -291,6 +282,7 @@
       if (!out.value) return;
       await navigator.clipboard.writeText(out.value);
       msg.textContent = 'Copied!';
+      msg.style.color = '#065f46';
       msg.style.display = 'block';
       setTimeout(() => msg.style.display = 'none', 1500);
     });
