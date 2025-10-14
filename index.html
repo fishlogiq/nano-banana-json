@@ -59,13 +59,14 @@
   </header>
 
   <main>
-    <!-- ========== TAB: IMAGE PROMPT (uses existing prompt-generator.js) ========== -->
+    <!-- ========== TAB: IMAGE PROMPT ========== -->
     <section class="tool card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
       <h2>Imagen Prompt from Shopify URL</h2>
 
       <div class="input-group">
         <label for="shopifyUrl">Shopify Product URL *</label>
         <input id="shopifyUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
+        <p class="help-text">Paste once; both tabs can use it.</p>
       </div>
 
       <div class="form-row">
@@ -158,6 +159,10 @@
     <section class="tool card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
       <h2>Shopify Description Generator</h2>
 
+      <div class="btn-group" style="margin-bottom:8px;">
+        <button id="prefillBtn" class="btn-primary">Prefill from Shopify URL</button>
+      </div>
+
       <div class="input-group">
         <label for="descTitle">Product Title</label>
         <input id="descTitle" placeholder="Toddler Girls Butterfly Hoodie & Legging Set" />
@@ -243,41 +248,6 @@
   <!-- Your existing JS for IMAGE PROMPT -->
   <script src="./prompt-generator.js"></script>
 
-  <script>
-  // Uses the constants defined in prompt-generator.js
-  async function prefillFromShopifyUrl() {
-    const url = document.getElementById('shopifyUrl').value.trim();
-    if (!url || !url.includes('/products/')) return;
-
-    try {
-      const res = await fetch(API_PRODUCT, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ product_url: url })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || 'Fetch failed');
-
-      // Map to your fields (adjust keys if your function returns different names)
-      document.getElementById('descTitle').value   = data.title || '';
-      document.getElementById('descBrand').value   = data.brand || '';
-      document.getElementById('descSKU').value     = data.sku || '';
-      document.getElementById('descSizes').value   = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
-      document.getElementById('descOrigin').value  = data.origin || '';
-      document.getElementById('descTop').value     = data.top_fabric || '';
-      document.getElementById('descBottom').value  = data.bottom_fabric || '';
-      document.getElementById('descCare').value    = data.care || '';
-      document.getElementById('descFeatures').value = (data.features || []).map(f => `- ${f}`).join('\n');
-    } catch (e) {
-      console.warn('Prefill error:', e.message);
-    }
-  }
-
-  // When switching to Description tab, try to prefill once
-  document.getElementById('tabbtn-desc').addEventListener('click', prefillFromShopifyUrl);
-</script>
-
-
   <!-- Tabs + Description script -->
   <script>
     // --- tabs ---
@@ -296,11 +266,11 @@
     }
     btnImage.addEventListener('click', () => selectTab('image'));
     btnDesc.addEventListener('click', () => selectTab('desc'));
-
-    // default tab = image
-    selectTab('image');
+    selectTab('image'); // default
 
     // --- description generator helpers ---
+    const $ = id => document.getElementById(id);
+
     function sanitizeLines(s=''){
       return s.split(/\r?\n/).map(v => v.replace(/^\s*[-*]\s?/, '').trim()).filter(Boolean);
     }
@@ -341,8 +311,7 @@ Great for school, playdates, and everyday wear. Available wholesale by the dozen
       return `${title} pairs comfort and style with a coordinated look.`;
     }
 
-    // DOM
-    const $ = id => document.getElementById(id);
+    // Generate description
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn'),
       outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
 
@@ -376,6 +345,39 @@ Great for school, playdates, and everyday wear. Available wholesale by the dozen
       msg.textContent = 'Copied! Paste into Shopify’s description field.';
       msg.style.display = 'block';
       setTimeout(()=> msg.style.display='none', 1500);
+    });
+
+    // Prefill from Shopify URL via Cloud Run (second service)
+    async function prefillFromShopifyUrl() {
+      const url = $('shopifyUrl').value.trim();
+      if (!url || !url.includes('/products/')) return;
+
+      try {
+        const res = await fetch(window.API_PRODUCT, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ product_url: url })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message || 'Fetch failed');
+
+        $('descTitle').value   = data.title || '';
+        $('descBrand').value   = data.brand || '';
+        $('descSKU').value     = data.sku || '';
+        $('descSizes').value   = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
+        $('descOrigin').value  = data.origin || '';
+        $('descTop').value     = data.top_fabric || '';
+        $('descBottom').value  = data.bottom_fabric || '';
+        $('descCare').value    = data.care || '';
+        $('descFeatures').value = (data.features || []).map(f => `- ${f}`).join('\n');
+      } catch (e) {
+        console.warn('Prefill error:', e.message);
+      }
+    }
+    document.getElementById('prefillBtn').addEventListener('click', prefillFromShopifyUrl);
+    document.getElementById('tabbtn-desc').addEventListener('click', prefillFromShopifyUrl);
+    $('shopifyUrl').addEventListener('change', () => {
+      if (tabs.desc.classList.contains('active')) prefillFromShopifyUrl();
     });
   </script>
 </body>
