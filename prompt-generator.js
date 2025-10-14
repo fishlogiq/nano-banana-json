@@ -1,7 +1,10 @@
 (function () {
   "use strict";
 
-  const API_URL = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
+  // --- add/replace at the top ---
+  const API_IMAGE   = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
+  const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
+
   
   const shopifyUrlInput = document.getElementById('shopifyUrl');
   const modelCountSelect = document.getElementById('modelCount');
