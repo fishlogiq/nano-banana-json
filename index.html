@@ -3,276 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shopify to Nano Banana Prompt Generator</title>
+  <title>Shopify Tools: Image Prompt & Descriptions</title>
   <style>
     :root { 
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       --primary: #667eea;
       --success: #10b981;
       --error: #ef4444;
+      --muted: #6b7280;
     }
-    body { 
-      margin: 0; 
-      padding: 24px; 
-      max-width: 1200px; 
-      margin: 0 auto;
-      background: #f9fafb;
+    body { margin:0; padding:24px; max-width:1200px; margin:0 auto; background:#f9fafb; }
+    header { margin-bottom:24px; text-align:center; padding:28px 20px;
+      background:linear-gradient(135deg, var(--primary) 0%, #764ba2 100%); color:#fff; border-radius:16px; }
+    header h1{margin:0 0 6px 0}
+    .tabs{display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap}
+    .tab-btn{background:#ffffff22; color:#fff; border:1px solid #ffffff55; padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:600}
+    .tab-btn[aria-selected="true"]{background:#fff; color:#374151}
+    .card{background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    h2{margin:0 0 12px 0; color:#1f2937; font-size:20px; border-bottom:2px solid #e5e7eb; padding-bottom:10px}
+    .input-group{margin-bottom:16px}
+    .input-group label{display:block; margin-bottom:8px; font-weight:600; color:#374151}
+    .input-group input,.input-group select, .input-group textarea{
+      width:100%; padding:12px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px; background:#fff
     }
-    header { 
-      margin-bottom: 32px;
-      text-align: center;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
-      color: white;
-      border-radius: 16px;
-    }
-    header h1 { margin: 0 0 8px 0; }
-    header p { margin: 0; opacity: 0.9; }
-    
-    .card { 
-      background: white;
-      border: 1px solid #e5e7eb; 
-      border-radius: 12px; 
-      padding: 24px; 
-      margin-bottom: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    
-    .card h2 {
-      margin-top: 0;
-      color: #1f2937;
-      font-size: 20px;
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 12px;
-      margin-bottom: 20px;
-    }
-    
-    .input-group {
-      margin-bottom: 16px;
-    }
-    
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #374151;
-    }
-    
-    .input-group input,
-    .input-group select {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.2s;
-      background: white;
-    }
-    
-    .input-group input:focus,
-    .input-group select:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-    
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-    }
-    
-    .form-row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    
-    @media (max-width: 768px) {
-      .form-row,
-      .form-row-2 {
-        grid-template-columns: 1fr;
-      }
-      body { padding: 16px; }
-      header { padding: 24px 16px; }
-    }
-    
-    .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 8px;
-    }
-    
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .checkbox-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-    
-    .checkbox-item label {
-      margin: 0;
-      font-weight: normal;
-      cursor: pointer;
-    }
-    
-    textarea { 
-      width: 100%; 
-      min-height: 400px; 
-      padding: 16px;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      font-family: 'Monaco', 'Courier New', monospace;
-      font-size: 13px;
-      background: #1e1e1e;
-      color: #d4d4d4;
-    }
-    
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-    
-    button { 
-      padding: 12px 24px; 
-      border-radius: 8px; 
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-    
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover:not(:disabled) {
-      background: #5568d3;
-      transform: translateY(-1px);
-    }
-    
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-    
-    .btn-success:hover:not(:disabled) {
-      background: #059669;
-    }
-    
-    .message { 
-      display: none;
-      padding: 12px 16px; 
-      border-radius: 8px; 
-      margin-top: 16px;
-      font-size: 14px;
-    }
-    
-    .message.show { 
-      display: block;
-    }
-    
-    .message.success { 
-      color: #065f46; 
-      background: #d1fae5; 
-      border: 1px solid var(--success);
-    }
-    
-    .message.error {
-      color: #991b1b;
-      background: #fee2e2;
-      border: 1px solid var(--error);
-    }
-    
-    .loader {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 3px solid #f3f4f6;
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    
-    .loader.show {
-      display: inline-block;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .instructions {
-      background: #fffbeb;
-      border: 1px solid #fbbf24;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 16px;
-    }
-    
-    .instructions h3 {
-      margin: 0 0 12px 0;
-      color: #92400e;
-    }
-    
-    .instructions ol {
-      margin: 0;
-      padding-left: 20px;
-    }
-    
-    .instructions li {
-      margin-bottom: 8px;
-      color: #78350f;
-    }
-    
-    .instructions a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-    
-    .instructions a:hover {
-      text-decoration: underline;
-    }
-    
-    .help-text {
-      font-size: 13px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
+    .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none; border-color:var(--primary)}
+    .form-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px}
+    .form-row-2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+    @media (max-width: 900px){.form-row,.form-row-2{grid-template-columns:1fr}}
+    .checkbox-group{display:flex; flex-wrap:wrap; gap:16px; margin-top:8px}
+    .checkbox-item{display:flex; align-items:center; gap:8px}
+    textarea.code{min-height:360px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#111827; color:#d1d5db}
+    .btn-group{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px}
+    button{padding:12px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700}
+    .btn-primary{background:var(--primary); color:#fff}
+    .btn-success{background:var(--success); color:#fff}
+    .message{display:none; margin-top:12px; padding:10px 12px; border-radius:8px; font-size:14px}
+    .message.success{display:block; background:#d1fae5; color:#065f46; border:1px solid #10b981}
+    .message.error{display:block; background:#fee2e2; color:#991b1b; border:1px solid #ef4444}
+    .loader{display:none; width:20px; height:20px; border:3px solid #f3f4f6; border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .help-text{font-size:13px; color:var(--muted); margin-top:4px}
+    /* tabs visibility */
+    [data-tab]{display:none}
+    [data-tab].active{display:block}
   </style>
 </head>
 <body>
   <header>
-    <h1>Shopify to Imagen Prompt Generator</h1>
-    <p>Automatically generate AI image prompts from any Shopify product URL</p>
+    <h1>Shopify Tools</h1>
+    <p>Generate AI Image Prompts or Shopify Descriptions from product data</p>
+    <div class="tabs" role="tablist" aria-label="Tool selector">
+      <button class="tab-btn" role="tab" aria-controls="tab-image" aria-selected="true" id="tabbtn-image">Image Prompt</button>
+      <button class="tab-btn" role="tab" aria-controls="tab-desc" aria-selected="false" id="tabbtn-desc">Description Generator</button>
+    </div>
   </header>
 
   <main>
-    <section class="card">
-      <h2>Product Details</h2>
+    <!-- ========== TAB: IMAGE PROMPT (uses existing prompt-generator.js) ========== -->
+    <section class="tool card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
+      <h2>Imagen Prompt from Shopify URL</h2>
+
       <div class="input-group">
         <label for="shopifyUrl">Shopify Product URL *</label>
-        <input 
-          id="shopifyUrl" 
-          type="url"
-          placeholder="https://yourstore.com/products/product-name" 
-        />
+        <input id="shopifyUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
       </div>
-      
+
       <div class="form-row">
         <div class="input-group">
           <label for="modelCount">Number of Models</label>
@@ -282,7 +77,7 @@
           </select>
           <p class="help-text">How many models to include</p>
         </div>
-        
+
         <div class="input-group">
           <label for="ethnicity1">Model 1 Ethnicity</label>
           <select id="ethnicity1">
@@ -294,7 +89,7 @@
           </select>
           <p class="help-text">First model appearance</p>
         </div>
-        
+
         <div class="input-group">
           <label for="ethnicity2">Model 2 Ethnicity</label>
           <select id="ethnicity2">
@@ -307,11 +102,7 @@
           <p class="help-text">Second model (only if 2 models selected)</p>
         </div>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>Model Age & Styling</h2>
-      
       <div class="form-row-2">
         <div class="input-group">
           <label for="ageCategory">Age Category</label>
@@ -326,80 +117,231 @@
           </select>
           <p class="help-text">Leave blank to auto-detect from product sizes</p>
         </div>
-        
+
         <div class="input-group">
-          <label>
-            <input type="checkbox" id="showMovement" style="width: auto; margin-right: 8px;">
-            Show Movement
-          </label>
+          <label><input type="checkbox" id="showMovement" style="width:auto; margin-right:8px;"> Show Movement</label>
           <p class="help-text">Generate dynamic poses (running, jumping, walking)</p>
         </div>
       </div>
-      
+
       <div class="input-group">
         <label>Additional Footwear</label>
         <div class="checkbox-group">
-          <div class="checkbox-item">
-            <input type="checkbox" id="addSneakers">
-            <label for="addSneakers">Sneakers</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="addSocks">
-            <label for="addSocks">Socks</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="addShoes">
-            <label for="addShoes">Casual Shoes</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="addWorkBoots">
-            <label for="addWorkBoots">Work Boots</label>
-          </div>
+          <div class="checkbox-item"><input type="checkbox" id="addSneakers"><label for="addSneakers">Sneakers</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="addSocks"><label for="addSocks">Socks</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="addShoes"><label for="addShoes">Casual Shoes</label></div>
+          <div class="checkbox-item"><input type="checkbox" id="addWorkBoots"><label for="addWorkBoots">Work Boots</label></div>
         </div>
-        <p class="help-text">Add footwear to complete the look</p>
       </div>
-    </section>
 
-    <section class="card">
       <div class="btn-group">
-        <button id="generateBtn" class="btn-primary">
-          Generate Prompt
-        </button>
+        <button id="generateBtn" class="btn-primary">Generate Prompt</button>
         <div class="loader" id="loader"></div>
       </div>
-      
-      <div id="errorMessage" class="message error"></div>
+      <div id="errorMessage" class="message error" role="alert" aria-live="polite"></div>
+
+      <section class="card" id="outputSection" style="display:none;">
+        <h2>Generated Prompt</h2>
+        <textarea id="jsonOutput" class="code" readonly></textarea>
+        <div class="btn-group">
+          <button id="copyBtn" class="btn-success">Copy JSON to Clipboard</button>
+          <button id="downloadRefBtn" class="btn-primary">Download Reference Image</button>
+        </div>
+        <div id="successMessage" class="message success" aria-live="polite"></div>
+        <div class="help-text" style="margin-top:8px">
+          Use in <a href="https://aistudio.google.com/prompts/new_chat" target="_blank">Google AI Studio</a> with the downloaded reference photo.
+        </div>
+      </section>
     </section>
 
-    <section class="card" id="outputSection" style="display: none;">
-      <h2>Generated Prompt</h2>
-      <textarea id="jsonOutput" readonly></textarea>
-      
+    <!-- ========== TAB: DESCRIPTION GENERATOR ========== -->
+    <section class="tool card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
+      <h2>Shopify Description Generator</h2>
+
+      <div class="input-group">
+        <label for="descTitle">Product Title</label>
+        <input id="descTitle" placeholder="Toddler Girls Butterfly Hoodie & Legging Set" />
+      </div>
+
+      <div class="form-row-2">
+        <div class="input-group">
+          <label for="descBrand">Brand</label>
+          <input id="descBrand" placeholder="Girls Pink" />
+        </div>
+        <div class="input-group">
+          <label for="descSKU">Style/SKU</label>
+          <input id="descSKU" placeholder="7389302" />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="input-group">
+          <label for="descSizes">Sizes (comma separated)</label>
+          <input id="descSizes" placeholder="2T, 3T, 4T" />
+        </div>
+        <div class="input-group">
+          <label for="descOrigin">Country of Origin</label>
+          <input id="descOrigin" placeholder="Made in China" />
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="input-group">
+          <label for="descTop">Top Fabric</label>
+          <input id="descTop" placeholder="100% Polyester" />
+        </div>
+        <div class="input-group">
+          <label for="descBottom">Bottom Fabric</label>
+          <input id="descBottom" placeholder="94% Polyester, 6% Spandex" />
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="descCare">Care</label>
+        <input id="descCare" placeholder="Machine wash cold; use mild soap; no bleach; wash dark colors separately; reshape and dry flat" />
+      </div>
+
+      <div class="input-group">
+        <label for="descFeatures">Features (one per line)</label>
+        <textarea id="descFeatures" rows="6" placeholder="- Butterfly chest screen print
+- Hooded fleece pullover
+- Matching animal-print leggings"></textarea>
+      </div>
+
+      <div class="form-row-2">
+        <div class="input-group">
+          <label for="descTone">Tone</label>
+          <select id="descTone">
+            <option>Concise</option>
+            <option>Playful</option>
+            <option>Warm</option>
+            <option>Wholesale-focused</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="descFormat">Output</label>
+          <select id="descFormat">
+            <option value="html">HTML (Shopify)</option>
+            <option value="md">Markdown</option>
+          </select>
+        </div>
+      </div>
+
       <div class="btn-group">
-        <button id="copyBtn" class="btn-success">
-          Copy JSON to Clipboard
-        </button>
-        <button id="downloadRefBtn" class="btn-primary">
-          Download Reference Image
-        </button>
+        <button id="genDescBtn" class="btn-primary">Generate Description</button>
+        <button id="copyDescBtn" class="btn-success">Copy</button>
       </div>
-      
-      <div id="successMessage" class="message success"></div>
-      
-      <div class="instructions">
-        <h3>How to Use This Prompt</h3>
-        <ol>
-          <li>Click "Download Reference Image" to get the product photo</li>
-          <li>Copy the JSON above using the "Copy" button</li>
-          <li>Go to <a href="https://aistudio.google.com/prompts/new_chat" target="_blank">Google AI Studio</a></li>
-          <li>Upload the reference image you just downloaded</li>
-          <li>Paste the JSON prompt into the text box</li>
-          <li>Click "Run" to generate your professional product photo</li>
-        </ol>
-      </div>
+
+      <section class="card" id="descOutWrap" style="display:none;">
+        <h2>Output</h2>
+        <textarea id="descOutput" class="code" readonly></textarea>
+      </section>
+      <div id="descMsg" class="message success" style="display:none;"></div>
     </section>
   </main>
 
-  <script src="./prompt-generator.js?v=1"></script>
+  <!-- Your existing JS for IMAGE PROMPT -->
+  <script src="./prompt-generator.js"></script>
+
+  <!-- Tabs + Description script -->
+  <script>
+    // --- tabs ---
+    const tabs = {
+      image: document.getElementById('tab-image'),
+      desc: document.getElementById('tab-desc')
+    };
+    const btnImage = document.getElementById('tabbtn-image');
+    const btnDesc = document.getElementById('tabbtn-desc');
+
+    function selectTab(which){
+      Object.values(tabs).forEach(el => el.classList.remove('active'));
+      tabs[which].classList.add('active');
+      btnImage.setAttribute('aria-selected', which==='image' ? 'true' : 'false');
+      btnDesc.setAttribute('aria-selected', which==='desc' ? 'true' : 'false');
+    }
+    btnImage.addEventListener('click', () => selectTab('image'));
+    btnDesc.addEventListener('click', () => selectTab('desc'));
+
+    // default tab = image
+    selectTab('image');
+
+    // --- description generator helpers ---
+    function sanitizeLines(s=''){
+      return s.split(/\r?\n/).map(v => v.replace(/^\s*[-*]\s?/, '').trim()).filter(Boolean);
+    }
+    function descToHTML(d){
+      const feats = d.features.map(f => `<li>${f}</li>`).join('');
+      return `
+<p>${d.lead}</p>
+<ul>${feats}</ul>
+${d.sizes ? `<p><strong>Sizes:</strong> ${d.sizes}</p>` : ''}
+<ul>
+  ${d.top ? `<li><strong>Top Fabric:</strong> ${d.top}</li>`:''}
+  ${d.bottom ? `<li><strong>Bottom Fabric:</strong> ${d.bottom}</li>`:''}
+  ${d.care ? `<li><strong>Care:</strong> ${d.care}</li>`:''}
+  ${d.brand ? `<li><strong>Brand:</strong> ${d.brand}</li>`:''}
+  ${d.sku ? `<li><strong>Style/SKU:</strong> ${d.sku}</li>`:''}
+  ${d.origin ? `<li><strong>Country of Origin:</strong> ${d.origin}</li>`:''}
+</ul>
+<p><em>Great for</em> school, playdates, and everyday wear. Available wholesale by the dozen.</p>
+      `.trim();
+    }
+    function descToMD(d){
+      const feats = d.features.map(f => `- ${f}`).join('\\n');
+      return `${d.lead}
+
+**Features & Details**
+${feats}
+
+${d.sizes ? `**Sizes:** ${d.sizes}\\n` : ''}${d.top ? `**Top Fabric:** ${d.top}\\n` : ''}${d.bottom ? `**Bottom Fabric:** ${d.bottom}\\n` : ''}${d.care ? `**Care:** ${d.care}\\n` : ''}${d.brand ? `**Brand:** ${d.brand}\\n` : ''}${d.sku ? `**Style/SKU:** ${d.sku}\\n` : ''}${d.origin ? `**Country of Origin:** ${d.origin}\\n` : ''}
+
+Great for school, playdates, and everyday wear. Available wholesale by the dozen.`.trim();
+    }
+    function buildLead(title, tone){
+      if(!title) return 'Comfort meets everyday style.';
+      const t = tone.toLowerCase();
+      if(t.includes('playful')) return `Add playful comfort with ${title}.`;
+      if(t.includes('warm')) return `Easy, cozy, and ready for everyday—${title}.`;
+      if(t.includes('wholesale')) return `${title}: fast-moving style built for volume buyers.`;
+      return `${title} pairs comfort and style with a coordinated look.`;
+    }
+
+    // DOM
+    const $ = id => document.getElementById(id);
+    const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn'),
+      outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
+
+    genDescBtn.addEventListener('click', () => {
+      const data = {
+        title: $('descTitle').value.trim(),
+        brand: $('descBrand').value.trim(),
+        sku: $('descSKU').value.trim(),
+        sizes: $('descSizes').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),
+        origin: $('descOrigin').value.trim(),
+        top: $('descTop').value.trim(),
+        bottom: $('descBottom').value.trim(),
+        care: $('descCare').value.trim(),
+        features: sanitizeLines($('descFeatures').value),
+        tone: $('descTone').value,
+        format: $('descFormat').value
+      };
+      const base = {
+        lead: buildLead(`${data.title}${data.brand ? ' – '+data.brand:''}`, data.tone),
+        features: data.features, sizes: data.sizes, top: data.top, bottom: data.bottom,
+        care: data.care, brand: data.brand, sku: data.sku, origin: data.origin
+      };
+      out.value = (data.format === 'md') ? descToMD(base) : descToHTML(base);
+      outWrap.style.display = 'block';
+      msg.style.display = 'none';
+    });
+
+    copyDescBtn.addEventListener('click', async () => {
+      if(!out.value) return;
+      await navigator.clipboard.writeText(out.value);
+      msg.textContent = 'Copied! Paste into Shopify’s description field.';
+      msg.style.display = 'block';
+      setTimeout(()=> msg.style.display='none', 1500);
+    });
+  </script>
 </body>
 </html>
