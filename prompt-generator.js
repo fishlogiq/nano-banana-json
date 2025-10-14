@@ -4,8 +4,9 @@
   // --- add/replace at the top ---
   const API_IMAGE   = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
   const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
+  window.API_IMAGE = API_IMAGE;  
+  window.API_PRODUCT = API_PRODUCT;
 
-  
   const shopifyUrlInput = document.getElementById('shopifyUrl');
   const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
