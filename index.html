@@ -5,49 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shopify Tools: Image Prompt & Descriptions</title>
   <style>
-    :root { 
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      --primary: #667eea; --success: #10b981; --error: #ef4444; --muted: #6b7280;
-    }
-    body { margin:0; padding:24px; max-width:1200px; margin:0 auto; background:#f9fafb; }
-    header { margin-bottom:24px; text-align:center; padding:28px 20px;
-      background:linear-gradient(135deg, var(--primary) 0%, #764ba2 100%); color:#fff; border-radius:16px; }
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;--primary:#667eea;--success:#10b981;--muted:#6b7280}
+    body{margin:0;padding:24px;max-width:1200px;margin:0 auto;background:#f9fafb}
+    header{margin-bottom:24px;text-align:center;padding:28px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border-radius:16px}
     header h1{margin:0 0 6px 0}
-    .tabs{display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap}
-    .tab-btn{background:#ffffff22; color:#fff; border:1px solid #ffffff55; padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:600}
-    .tab-btn[aria-selected="true"]{background:#fff; color:#374151}
-    .card{background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:24px; margin-bottom:24px; box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    h2{margin:0 0 12px 0; color:#1f2937; font-size:20px; border-bottom:2px solid #e5e7eb; padding-bottom:10px}
+    .tabs{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+    .tab-btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55;padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:600}
+    .tab-btn[aria-selected="true"]{background:#fff;color:#374151}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    h2{margin:0 0 12px 0;color:#1f2937;font-size:20px;border-bottom:2px solid #e5e7eb;padding-bottom:10px}
     .input-group{margin-bottom:16px}
-    .input-group label{display:block; margin-bottom:8px; font-weight:600; color:#374151}
-    .input-group input,.input-group select,.input-group textarea{
-      width:100%; padding:12px; border:2px solid #e5e7eb; border-radius:8px; font-size:14px; background:#fff
-    }
-    .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none; border-color:var(--primary)}
-    .form-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px}
-    .form-row-2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
-    @media (max-width: 900px){.form-row,.form-row-2{grid-template-columns:1fr}}
-    .checkbox-group{display:flex; flex-wrap:wrap; gap:16px; margin-top:8px}
-    .checkbox-item{display:flex; align-items:center; gap:8px}
-    textarea.code{min-height:360px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background:#111827; color:#d1d5db}
-    .btn-group{display:flex; gap:12px; flex-wrap:wrap; margin-top:16px}
-    button{padding:12px 20px; border-radius:8px; border:none; cursor:pointer; font-weight:700}
-    .btn-primary{background:var(--primary); color:#fff}
-    .btn-success{background:var(--success); color:#fff}
-    .message{display:none; margin-top:12px; padding:10px 12px; border-radius:8px; font-size:14px}
-    .message.success{display:block; background:#d1fae5; color:#065f46; border:1px solid #10b981}
-    .message.error{display:block; background:#fee2e2; color:#991b1b; border:1px solid #ef4444}
-    .loader{display:none; width:20px; height:20px; border:3px solid #f3f4f6; border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite}
+    .input-group label{display:block;margin-bottom:8px;font-weight:600;color:#374151}
+    .input-group input,.input-group select,.input-group textarea{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;background:#fff}
+    .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none;border-color:var(--primary)}
+    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:900px){.form-row-2{grid-template-columns:1fr}}
+    .checkbox-group{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px}
+    .btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+    button{padding:12px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .loader{display:none;width:20px;height:20px;border:3px solid #f3f4f6;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .help-text{font-size:13px; color:var(--muted); margin-top:4px}
-    [data-tab]{display:none}
-    [data-tab].active{display:block}
+    .help-text{font-size:13px;color:var(--muted);margin-top:4px}
+    textarea.code{min-height:360px;font-family:ui-monospace,Menlo,Consolas,monospace;background:#111827;color:#d1d5db}
+    [data-tab]{display:none}.active{display:block}
   </style>
 </head>
 <body>
   <header>
     <h1>Shopify Tools</h1>
-    <p>Generate AI Image Prompts or Shopify Descriptions from product data</p>
+    <p>Generate AI Image Prompts or Shopify Descriptions from a product URL</p>
     <div class="tabs" role="tablist" aria-label="Tool selector">
       <button class="tab-btn" role="tab" aria-controls="tab-image" aria-selected="true" id="tabbtn-image">Image Prompt</button>
       <button class="tab-btn" role="tab" aria-controls="tab-desc" aria-selected="false" id="tabbtn-desc">Description Generator</button>
@@ -55,26 +43,36 @@
   </header>
 
   <main>
-    <!-- ========== TAB: IMAGE PROMPT ========== -->
-    <section class="tool card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
+    <!-- ========== IMAGE PROMPT (unchanged) ========== -->
+    <section class="card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
       <h2>Imagen Prompt from Shopify URL</h2>
 
       <div class="input-group">
         <label for="shopifyUrl">Shopify Product URL *</label>
         <input id="shopifyUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
-        <p class="help-text">Paste once; both tabs can use it.</p>
+        <p class="help-text">Used only for the Image Prompt tab.</p>
       </div>
 
-      <div class="form-row">
+      <div class="form-row-2">
         <div class="input-group">
           <label for="modelCount">Number of Models</label>
           <select id="modelCount">
             <option value="1">1 Model</option>
             <option value="2" selected>2 Models</option>
           </select>
-          <p class="help-text">How many models to include</p>
         </div>
+        <div class="input-group">
+          <label for="ageCategory">Age Category</label>
+          <select id="ageCategory">
+            <option value="">Auto-detect</option>
+            <option value="18mon">18 Months</option><option value="3t">3 Years</option>
+            <option value="7y">7 Years</option><option value="12yr">12 Years</option>
+            <option value="18yr">18 Years</option><option value="adult">Adult (25-35)</option>
+          </select>
+        </div>
+      </div>
 
+      <div class="form-row-2">
         <div class="input-group">
           <label for="ethnicity1">Model 1 Ethnicity</label>
           <select id="ethnicity1">
@@ -82,11 +80,9 @@
             <option value="African American">African American</option>
             <option value="Caucasian">Caucasian</option>
             <option value="Asian">Asian</option>
-            <option value="Mixed">Mixed Ethnicity</option>
+            <option value="Mixed">Mixed</option>
           </select>
-          <p class="help-text">First model appearance</p>
         </div>
-
         <div class="input-group">
           <label for="ethnicity2">Model 2 Ethnicity</label>
           <select id="ethnicity2">
@@ -94,142 +90,53 @@
             <option value="African American" selected>African American</option>
             <option value="Caucasian">Caucasian</option>
             <option value="Asian">Asian</option>
-            <option value="Mixed">Mixed Ethnicity</option>
+            <option value="Mixed">Mixed</option>
           </select>
-          <p class="help-text">Second model (only if 2 models selected)</p>
         </div>
       </div>
 
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="ageCategory">Age Category</label>
-          <select id="ageCategory">
-            <option value="">Auto-detect from product</option>
-            <option value="18mon">18 Months Old</option>
-            <option value="3t">3 Years Old</option>
-            <option value="7y">7 Years Old</option>
-            <option value="12yr">12 Years Old</option>
-            <option value="18yr">18 Years Old</option>
-            <option value="adult">Adult (25-35)</option>
-          </select>
-          <p class="help-text">Leave blank to auto-detect from product sizes</p>
-        </div>
-
-        <div class="input-group">
-          <label><input type="checkbox" id="showMovement" style="width:auto; margin-right:8px;"> Show Movement</label>
-          <p class="help-text">Generate dynamic poses (running, jumping, walking)</p>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label>Additional Footwear</label>
-        <div class="checkbox-group">
-          <div class="checkbox-item"><input type="checkbox" id="addSneakers"><label for="addSneakers">Sneakers</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="addSocks"><label for="addSocks">Socks</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="addShoes"><label for="addShoes">Casual Shoes</label></div>
-          <div class="checkbox-item"><input type="checkbox" id="addWorkBoots"><label for="addWorkBoots">Work Boots</label></div>
-        </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="showMovement" /> Show Movement</label>
+        <label><input type="checkbox" id="addSneakers" /> Sneakers</label>
+        <label><input type="checkbox" id="addSocks" /> Socks</label>
+        <label><input type="checkbox" id="addShoes" /> Casual Shoes</label>
+        <label><input type="checkbox" id="addWorkBoots" /> Work Boots</label>
       </div>
 
       <div class="btn-group">
         <button id="generateBtn" class="btn-primary">Generate Prompt</button>
         <div class="loader" id="loader"></div>
       </div>
-      <div id="errorMessage" class="message error" role="alert" aria-live="polite"></div>
+      <div id="errorMessage" style="display:none;color:#b91c1c;margin-top:10px;"></div>
 
       <section class="card" id="outputSection" style="display:none;">
         <h2>Generated Prompt</h2>
         <textarea id="jsonOutput" class="code" readonly></textarea>
         <div class="btn-group">
-          <button id="copyBtn" class="btn-success">Copy JSON to Clipboard</button>
+          <button id="copyBtn" class="btn-success">Copy JSON</button>
           <button id="downloadRefBtn" class="btn-primary">Download Reference Image</button>
         </div>
-        <div id="successMessage" class="message success" aria-live="polite"></div>
-        <div class="help-text" style="margin-top:8px">
-          Use in <a href="https://aistudio.google.com/prompts/new_chat" target="_blank">Google AI Studio</a> with the downloaded reference photo.
-        </div>
+        <div id="successMessage" style="display:none;margin-top:8px;color:#065f46;"></div>
       </section>
     </section>
 
-    <!-- ========== TAB: DESCRIPTION GENERATOR ========== -->
-    <section class="tool card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
+    <!-- ========== DESCRIPTION (direct call) ========== -->
+    <section class="card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
       <h2>Shopify Description Generator</h2>
 
       <div class="input-group">
-        <label for="descUrl">Shopify Product URL (optional)</label>
+        <label for="descUrl">Shopify Product URL *</label>
         <input id="descUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
-        <p class="help-text">If left empty, we’ll use the URL from the Image tab.</p>
-      </div>
-
-      <div class="btn-group" style="margin-bottom:8px;">
-        <button id="prefillBtn" class="btn-primary" onclick="prefillFromShopifyUrl()">Prefill from Shopify URL</button>
-      </div>
-
-      <div class="input-group">
-        <label for="descTitle">Product Title</label>
-        <input id="descTitle" value="Toddler Girls Butterfly Hoodie & Legging Set" />
+        <p class="help-text">We call your Cloud Function and return HTML / Markdown / JSON directly.</p>
       </div>
 
       <div class="form-row-2">
-        <div class="input-group">
-          <label for="descBrand">Brand</label>
-          <input id="descBrand" value="Girls Pink" />
-        </div>
-        <div class="input-group">
-          <label for="descSKU">Style/SKU</label>
-          <input id="descSKU" value="7389302" />
-        </div>
-      </div>
-
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="descSizes">Sizes (comma separated)</label>
-          <input id="descSizes" value="2T, 3T, 4T" />
-        </div>
-        <div class="input-group">
-          <label for="descOrigin">Country of Origin</label>
-          <input id="descOrigin" value="Made in China" />
-        </div>
-      </div>
-
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="descTop">Top Fabric</label>
-          <input id="descTop" value="100% Polyester" />
-        </div>
-        <div class="input-group">
-          <label for="descBottom">Bottom Fabric</label>
-          <input id="descBottom" value="94% Polyester, 6% Spandex" />
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label for="descCare">Care</label>
-        <input id="descCare" value="Machine wash cold; use mild soap; no bleach; wash dark colors separately; reshape and dry flat" />
-      </div>
-
-      <div class="input-group">
-        <label for="descFeatures">Features (one per line)</label>
-        <textarea id="descFeatures" rows="6">- Butterfly chest screen print
-- Hooded fleece pullover
-- Matching animal-print leggings</textarea>
-      </div>
-
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="descTone">Tone</label>
-          <select id="descTone">
-            <option selected>Concise</option>
-            <option>Playful</option>
-            <option>Warm</option>
-            <option>Wholesale-focused</option>
-          </select>
-        </div>
         <div class="input-group">
           <label for="descFormat">Output</label>
           <select id="descFormat">
             <option value="html" selected>HTML (Shopify)</option>
             <option value="md">Markdown</option>
+            <option value="json">JSON</option>
           </select>
         </div>
       </div>
@@ -243,139 +150,92 @@
         <h2>Output</h2>
         <textarea id="descOutput" class="code" readonly></textarea>
       </section>
-      <div id="descMsg" class="message success" style="display:none;"></div>
+      <div id="descMsg" style="display:none;margin-top:8px;color:#065f46;"></div>
     </section>
   </main>
 
-  <!-- Image Prompt JS -->
+  <!-- Image Prompt JS (unchanged) -->
   <script src="./prompt-generator.js"></script>
 
-  <!-- Tabs + Description + Prefill -->
   <script>
-    // --- tabs ---
+    // --- Tabs ---
     const tabs = { image: document.getElementById('tab-image'), desc: document.getElementById('tab-desc') };
     const btnImage = document.getElementById('tabbtn-image');
     const btnDesc = document.getElementById('tabbtn-desc');
     function selectTab(which){
       Object.values(tabs).forEach(el => el.classList.remove('active'));
       tabs[which].classList.add('active');
-      btnImage.setAttribute('aria-selected', which==='image' ? 'true' : 'false');
-      btnDesc.setAttribute('aria-selected', which==='desc' ? 'true' : 'false');
+      btnImage.setAttribute('aria-selected', which==='image');
+      btnDesc.setAttribute('aria-selected', which==='desc');
     }
     btnImage.addEventListener('click', () => selectTab('image'));
-    btnDesc.addEventListener('click', () => { selectTab('desc'); prefillFromShopifyUrl(); });
-    selectTab('image'); // default
+    btnDesc.addEventListener('click', () => selectTab('desc'));
+    selectTab('image');
 
-    // --- helpers ---
-    const $ = id => document.getElementById(id);
-    function sanitizeLines(s=''){ return s.split(/\r?\n/).map(v => v.replace(/^\s*[-*]\s?/, '').trim()).filter(Boolean); }
-    function descToHTML(d){
-      const feats = d.features.map(f => `<li>${f}</li>`).join('');
-      return `
-<p>${d.lead}</p>
-<ul>${feats}</ul>
-${d.sizes ? `<p><strong>Sizes:</strong> ${d.sizes}</p>` : ''}
-<ul>
-  ${d.top ? `<li><strong>Top Fabric:</strong> ${d.top}</li>`:''}
-  ${d.bottom ? `<li><strong>Bottom Fabric:</strong> ${d.bottom}</li>`:''}
-  ${d.care ? `<li><strong>Care:</strong> ${d.care}</li>`:''}
-  ${d.brand ? `<li><strong>Brand:</strong> ${d.brand}</li>`:''}
-  ${d.sku ? `<li><strong>Style/SKU:</strong> ${d.sku}</li>`:''}
-  ${d.origin ? `<li><strong>Country of Origin:</strong> ${d.origin}</li>`:''}
-</ul>
-<p><em>Great for</em> school, playdates, and everyday wear. Available wholesale by the dozen.</p>
-      `.trim();
-    }
-    function descToMD(d){
-      const feats = d.features.map(f => `- ${f}`).join('\n');
-      return `${d.lead}
+    // --- Description: direct call to Cloud Function ---
+    const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app'; // your endpoint
 
-**Features & Details**
-${feats}
-
-${d.sizes ? `**Sizes:** ${d.sizes}\n` : ''}${d.top ? `**Top Fabric:** ${d.top}\n` : ''}${d.bottom ? `**Bottom Fabric:** ${d.bottom}\n` : ''}${d.care ? `**Care:** ${d.care}\n` : ''}${d.brand ? `**Brand:** ${d.brand}\n` : ''}${d.sku ? `**Style/SKU:** ${d.sku}\n` : ''}${d.origin ? `**Country of Origin:** ${d.origin}\n` : ''}
-
-Great for school, playdates, and everyday wear. Available wholesale by the dozen.`.trim();
-    }
-    function buildLead(title, tone){
-      if(!title) return 'Comfort meets everyday style.';
-      const t = (tone||'').toLowerCase();
-      if(t.includes('playful')) return `Add playful comfort with ${title}.`;
-      if(t.includes('warm'))    return `Easy, cozy, and ready for everyday—${title}.`;
-      if(t.includes('wholesale')) return `${title}: fast-moving style built for volume buyers.`;
-      return `${title} pairs comfort and style with a coordinated look.`;
+    // tiny markdown→html (lists + bold + paragraphs) so we can show HTML if backend returns MD
+    function mdToHtml(md){
+      let html = md.trim();
+      html = html.replace(/\r\n/g, '\n');
+      // features list
+      html = html.replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>');
+      html = html.replace(/(?:<li>[\s\S]*?<\/li>)/g, m => `<ul>${m}</ul>`);
+      // bold **x**
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // paragraphs
+      html = html.split(/\n{2,}/).map(p => {
+        if (p.startsWith('<ul>')) return p; // already wrapped
+        return `<p>${p.replace(/\n/g,' ')}</p>`;
+      }).join('\n');
+      return html;
     }
 
-    // --- Generate description ---
+    function $(id){ return document.getElementById(id); }
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn'),
           outWrap = $('descOutWrap'), out = $('descOutput'), msg = $('descMsg');
 
-    genDescBtn.addEventListener('click', () => {
-      const data = {
-        title: $('descTitle').value.trim(),
-        brand: $('descBrand').value.trim(),
-        sku: $('descSKU').value.trim(),
-        sizes: $('descSizes').value.split(',').map(s=>s.trim()).filter(Boolean).join(', '),
-        origin: $('descOrigin').value.trim(),
-        top: $('descTop').value.trim(),
-        bottom: $('descBottom').value.trim(),
-        care: $('descCare').value.trim(),
-        features: sanitizeLines($('descFeatures').value),
-        tone: $('descTone').value,
-        format: $('descFormat').value
-      };
-      const base = {
-        lead: buildLead(`${data.title}${data.brand ? ' – '+data.brand:''}`, data.tone),
-        features: data.features, sizes: data.sizes, top: data.top, bottom: data.bottom,
-        care: data.care, brand: data.brand, sku: data.sku, origin: data.origin
-      };
-      out.value = (data.format === 'md') ? descToMD(base) : descToHTML(base);
-      outWrap.style.display = 'block';
-      msg.style.display = 'none';
+    genDescBtn.addEventListener('click', async () => {
+      const url = $('descUrl').value.trim();
+      const want = $('descFormat').value;
+      if (!url || !url.includes('/products/')) { alert('Enter a valid Shopify product URL'); return; }
+
+      outWrap.style.display = 'none'; msg.style.display = 'none'; out.value = '';
+
+      try {
+        const res = await fetch(API_PRODUCT, {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ product_url: url })
+        });
+        const text = await res.text();
+        let data; try { data = JSON.parse(text); } catch { throw new Error('Non-JSON response from API'); }
+
+        const outObj = data.outputs || data;
+        const title = outObj.product_title || outObj.title || '';
+        const md    = outObj.product_description || outObj.description_md || '';
+
+        // Build outputs
+        const html  = outObj.description_html || mdToHtml(md);
+        const json  = { title, description_markdown: md, description_html: html };
+
+        out.value = (want === 'md') ? md : (want === 'json') ? JSON.stringify(json, null, 2) : html;
+        outWrap.style.display = 'block';
+        msg.textContent = 'Generated from Cloud Function.';
+        msg.style.display = 'block';
+      } catch (e) {
+        msg.textContent = 'Error: ' + e.message;
+        msg.style.display = 'block';
+      }
     });
 
     copyDescBtn.addEventListener('click', async () => {
       if(!out.value) return;
       await navigator.clipboard.writeText(out.value);
-      msg.textContent = 'Copied! Paste into Shopify’s description field.';
+      msg.textContent = 'Copied!';
       msg.style.display = 'block';
       setTimeout(()=> msg.style.display='none', 1500);
     });
-
-    // --- Prefill from Cloud Run (global so onclick works) ---
-    window.API_PRODUCT = window.API_PRODUCT || 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
-    async function prefillFromShopifyUrl() {
-      const url = ($('descUrl')?.value || $('shopifyUrl')?.value || '').trim();
-      console.log('[Prefill] start', { url, API_PRODUCT: window.API_PRODUCT });
-      if (!url || !url.includes('/products/')) { return; }
-      try {
-        const res = await fetch(window.API_PRODUCT, {
-          method: 'POST', mode: 'cors',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ product_url: url })
-        });
-        const text = await res.text();
-        console.log('[Prefill] status', res.status, 'body:', text.slice(0,300));
-        let data; try { data = JSON.parse(text); } catch(e){ throw new Error('Non-JSON response from API'); }
-        if (!res.ok) throw new Error(data.error || data.message || ('HTTP '+res.status));
-        $('descTitle').value    = data.title || '';
-        $('descBrand').value    = data.brand || '';
-        $('descSKU').value      = data.sku || '';
-        $('descSizes').value    = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
-        $('descOrigin').value   = data.origin || '';
-        $('descTop').value      = data.top_fabric || '';
-        $('descBottom').value   = data.bottom_fabric || '';
-        $('descCare').value     = data.care || '';
-        $('descFeatures').value = (data.features || []).map(f => `- ${f}`).join('\n');
-        console.log('[Prefill] filled fields ✅');
-      } catch (err) {
-        console.error('[Prefill] failed ❌', err);
-        alert('Prefill error: ' + err.message);
-      }
-    }
-    window.prefillFromShopifyUrl = prefillFromShopifyUrl; // ensure global
-    $('descUrl').addEventListener('change', prefillFromShopifyUrl);
-    $('descUrl').addEventListener('paste', () => setTimeout(prefillFromShopifyUrl, 0));
   </script>
 </body>
 </html>
