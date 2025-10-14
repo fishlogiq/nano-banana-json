@@ -243,6 +243,41 @@
   <!-- Your existing JS for IMAGE PROMPT -->
   <script src="./prompt-generator.js"></script>
 
+  <script>
+  // Uses the constants defined in prompt-generator.js
+  async function prefillFromShopifyUrl() {
+    const url = document.getElementById('shopifyUrl').value.trim();
+    if (!url || !url.includes('/products/')) return;
+
+    try {
+      const res = await fetch(API_PRODUCT, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ product_url: url })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Fetch failed');
+
+      // Map to your fields (adjust keys if your function returns different names)
+      document.getElementById('descTitle').value   = data.title || '';
+      document.getElementById('descBrand').value   = data.brand || '';
+      document.getElementById('descSKU').value     = data.sku || '';
+      document.getElementById('descSizes').value   = Array.isArray(data.sizes) ? data.sizes.join(', ') : (data.sizes || '');
+      document.getElementById('descOrigin').value  = data.origin || '';
+      document.getElementById('descTop').value     = data.top_fabric || '';
+      document.getElementById('descBottom').value  = data.bottom_fabric || '';
+      document.getElementById('descCare').value    = data.care || '';
+      document.getElementById('descFeatures').value = (data.features || []).map(f => `- ${f}`).join('\n');
+    } catch (e) {
+      console.warn('Prefill error:', e.message);
+    }
+  }
+
+  // When switching to Description tab, try to prefill once
+  document.getElementById('tabbtn-desc').addEventListener('click', prefillFromShopifyUrl);
+</script>
+
+
   <!-- Tabs + Description script -->
   <script>
     // --- tabs ---
