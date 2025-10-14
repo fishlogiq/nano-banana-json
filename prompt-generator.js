@@ -1,12 +1,15 @@
 (function () {
   "use strict";
 
-  // --- add/replace at the top ---
+  // --- Endpoints ---
   const API_IMAGE   = 'https://us-central1-gen-lang-client-0859048251.cloudfunctions.net/shopifyGenerate';
   const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
-  window.API_IMAGE = API_IMAGE;  
+
+  // expose so index.html can use API_PRODUCT for prefill
+  window.API_IMAGE = API_IMAGE;
   window.API_PRODUCT = API_PRODUCT;
 
+  // --- DOM references for IMAGE tab ---
   const shopifyUrlInput = document.getElementById('shopifyUrl');
   const modelCountSelect = document.getElementById('modelCount');
   const ethnicity1Select = document.getElementById('ethnicity1');
@@ -29,12 +32,14 @@
   let currentPrompt = null;
 
   function showError(message) {
+    if (!errorMessage) return;
     errorMessage.textContent = message;
     errorMessage.classList.add('show');
     setTimeout(() => errorMessage.classList.remove('show'), 5000);
   }
 
   function showSuccess(message) {
+    if (!successMessage) return;
     successMessage.textContent = message;
     successMessage.classList.add('show');
     setTimeout(() => successMessage.classList.remove('show'), 3000);
@@ -47,16 +52,15 @@
       showError('Please enter a Shopify product URL');
       return;
     }
-
     if (!url.includes('/products/')) {
       showError('Please enter a valid product URL (must contain /products/)');
       return;
     }
 
     generateBtn.disabled = true;
-    loader.classList.add('show');
-    outputSection.style.display = 'none';
-    errorMessage.classList.remove('show');
+    if (loader) loader.classList.add('show');
+    if (outputSection) outputSection.style.display = 'none';
+    if (errorMessage) errorMessage.classList.remove('show');
 
     try {
       // Build request body with all options
@@ -67,35 +71,18 @@
         model_count: parseInt(modelCountSelect.value)
       };
 
-      // Add age category only if selected
       if (ageCategorySelect.value) {
         requestBody.age_category = ageCategorySelect.value;
       }
-
-      // Add footwear options if checked
-      if (addSneakersCheckbox.checked) {
-        requestBody.add_sneakers = true;
-      }
-      if (addSocksCheckbox.checked) {
-        requestBody.add_socks = true;
-      }
-      if (addShoesCheckbox.checked) {
-        requestBody.add_shoes = true;
-      }
-      if (addWorkBootsCheckbox.checked) {
-        requestBody.add_work_boots = true;
-      }
-
-      // Add movement option if checked
-      if (showMovementCheckbox.checked) {
-        requestBody.show_movement = true;
-      }
-
-      console.log('Sending request:', requestBody);
+      if (addSneakersCheckbox.checked) requestBody.add_sneakers = true;
+      if (addSocksCheckbox.checked)    requestBody.add_socks = true;
+      if (addShoesCheckbox.checked)    requestBody.add_shoes = true;
+      if (addWorkBootsCheckbox.checked)requestBody.add_work_boots = true;
+      if (showMovementCheckbox.checked)requestBody.show_movement = true;
 
       const response = await fetch(API_IMAGE, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       });
 
@@ -114,17 +101,13 @@
       showError(`Error: ${error.message}`);
     } finally {
       generateBtn.disabled = false;
-      loader.classList.remove('show');
+      if (loader) loader.classList.remove('show');
     }
   }
 
   async function copyToClipboard() {
     const text = jsonOutput.value;
-    
-    if (!text) {
-      showError('No prompt to copy');
-      return;
-    }
+    if (!text) { showError('No prompt to copy'); return; }
 
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -140,9 +123,8 @@
         document.execCommand('copy');
         document.body.removeChild(textarea);
       }
-      
       showSuccess('✅ Copied to clipboard! Now paste it into Google AI Studio.');
-    } catch (error) {
+    } catch {
       showError('Failed to copy. Please select and copy manually.');
     }
   }
@@ -152,50 +134,33 @@
       showError('No reference image available');
       return;
     }
-
     const imageUrl = currentPrompt.reference_image;
-    
-    // Extract filename from URL
     const urlParts = imageUrl.split('/');
     const filenameWithParams = urlParts[urlParts.length - 1];
     const filename = filenameWithParams.split('?')[0] || 'reference-image.jpg';
-    
-    // Show loading state
+
     downloadRefBtn.disabled = true;
     const originalText = downloadRefBtn.textContent;
     downloadRefBtn.textContent = 'Downloading...';
-    
+
     try {
-      // Fetch the image as a blob to bypass CORS and force download
       const response = await fetch(imageUrl);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch image');
-      }
-      
+      if (!response.ok) throw new Error('Failed to fetch image');
+
       const blob = await response.blob();
-      
-      // Create blob URL and trigger download
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = filename;
       link.style.display = 'none';
-      
-      // Append to body, click, and remove
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Clean up blob URL after a short delay
       setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-      
+
       showSuccess('✅ Reference image downloaded successfully!');
-      
     } catch (error) {
       console.error('Download error:', error);
-      
-      // Fallback: try using download attribute directly
       try {
         const link = document.createElement('a');
         link.href = imageUrl;
@@ -205,10 +170,8 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         showSuccess('Download initiated. If it opens in browser, right-click and "Save As".');
-      } catch (fallbackError) {
-        // Last resort: open in new tab
+      } catch {
         window.open(imageUrl, '_blank');
         showError('⚠️ Direct download blocked. Image opened in new tab - right-click to save.');
       }
@@ -218,13 +181,19 @@
     }
   }
 
-  generateBtn.addEventListener('click', generatePrompt);
-  copyBtn.addEventListener('click', copyToClipboard);
-  downloadRefBtn.addEventListener('click', downloadReferenceImage);
-  
-  shopifyUrlInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      generatePrompt();
-    }
-  });
+  // Wire up events (if elements exist on current page)
+  if (document.getElementById('generateBtn')) {
+    generateBtn.addEventListener('click', generatePrompt);
+  }
+  if (document.getElementById('copyBtn')) {
+    copyBtn.addEventListener('click', copyToClipboard);
+  }
+  if (document.getElementById('downloadRefBtn')) {
+    downloadRefBtn.addEventListener('click', downloadReferenceImage);
+  }
+  if (shopifyUrlInput) {
+    shopifyUrlInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') generatePrompt();
+    });
+  }
 })();
