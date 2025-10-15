@@ -150,28 +150,12 @@
       <div class="input-group">
         <label for="descUrl">Shopify Product URL *</label>
         <input id="descUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
-        <p class="help-text">Calls your Cloud Function and returns HTML / Markdown / JSON directly.</p>
-      </div>
-
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="descFormat">Output</label>
-          <select id="descFormat">
-            <option value="html" selected>HTML (Shopify)</option>
-            <option value="md">Markdown</option>
-            <option value="json">JSON</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label style="display:flex;gap:8px;align-items:center;margin-top:28px;">
-            <input type="checkbox" id="showCode" /> Show Code
-          </label>
-        </div>
+        <p class="help-text">Generates optimized product title, description, and SEO fields.</p>
       </div>
 
       <div class="btn-group">
         <button id="genDescBtn" class="btn-primary">Generate Description</button>
-        <button id="copyDescBtn" class="btn-success">Copy</button>
+        <button id="copyDescBtn" class="btn-success">Copy Markdown</button>
       </div>
 
       <!-- Progress Bar for Description -->
@@ -183,11 +167,11 @@
       <section class="card" id="descOutWrap" style="display:none;">
         <h2>Output</h2>
         
-        <!-- Preview (shown by default) -->
+        <!-- Preview -->
         <div id="descPreview" class="preview"></div>
         
-        <!-- Code textarea (hidden by default) -->
-        <textarea id="descOutput" class="code" readonly style="display:none;margin-top:16px;"></textarea>
+        <!-- Hidden textarea for copying -->
+        <textarea id="descOutput" class="code" readonly style="display:none;"></textarea>
       </section>
       <div id="descMsg" style="display:none;margin-top:8px;color:#065f46;"></div>
     </section>
@@ -216,13 +200,8 @@
     const $ = id => document.getElementById(id);
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn');
     const out = $('descOutput'), outWrap = $('descOutWrap'), msg = $('descMsg');
-    const preview = $('descPreview'), showCode = $('showCode');
+    const preview = $('descPreview');
     const descProgress = $('descProgress'), descProgressBar = $('descProgressBar'), descProgressText = $('descProgressText');
-
-    // Toggle code visibility
-    showCode.addEventListener('change', () => {
-      out.style.display = showCode.checked ? 'block' : 'none';
-    });
 
     // Progress simulation
     function simulateProgress(progressBar, progressText, steps) {
@@ -279,8 +258,7 @@
     }
 
     genDescBtn.addEventListener('click', async () => {
-      const url  = $('descUrl').value.trim();
-      const want = $('descFormat').value;
+      const url = $('descUrl').value.trim();
       if (!url || !url.includes('/products/')) { alert('Enter a valid Shopify product URL'); return; }
 
       // Reset UI
@@ -320,30 +298,20 @@
         const apiPayload = data.outputs || data;
         const { title, md, html, seoTitle, seoDesc } = normalizeApi(apiPayload);
 
-        // Create complete output object
-        const jsonOut = {
-          title,
-          seo_title: seoTitle,
-          seo_description: seoDesc,
-          description_markdown: md,
-          description_html: html
-        };
+        // Store markdown in hidden textarea for copying
+        out.value = `TITLE:\n${title}\n\nSEO TITLE:\n${seoTitle}\n\nSEO DESCRIPTION:\n${seoDesc}\n\nDESCRIPTION:\n${md}`;
 
-        // Format output based on selection
-        if (want === 'json') {
-          out.value = JSON.stringify(jsonOut, null, 2);
-        } else if (want === 'md') {
-          out.value = `TITLE:\n${title}\n\nSEO TITLE:\n${seoTitle}\n\nSEO DESCRIPTION:\n${seoDesc}\n\nDESCRIPTION:\n${md}`;
-        } else {
-          out.value = `<!-- TITLE -->\n${title}\n\n<!-- SEO TITLE -->\n${seoTitle}\n\n<!-- SEO DESCRIPTION -->\n${seoDesc}\n\n<!-- DESCRIPTION HTML -->\n${html}`;
-        }
-
-        // Always show formatted preview
-        preview.innerHTML = `<h3>${title}</h3><p><strong>SEO Title:</strong> ${seoTitle}</p><p><strong>SEO Desc:</strong> ${seoDesc}</p><hr>${html}`;
+        // Show formatted preview with SEO at bottom
+        preview.innerHTML = `
+          <h3>${title}</h3>
+          ${html}
+          <hr style="margin: 24px 0; border: none; border-top: 2px solid #e5e7eb;">
+          <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin-top: 16px;">
+            <p style="margin: 0 0 8px 0;"><strong>SEO Title:</strong> ${seoTitle}</p>
+            <p style="margin: 0;"><strong>SEO Description:</strong> ${seoDesc}</p>
+          </div>
+        `;
         preview.style.display = 'block';
-        
-        // Show/hide code based on checkbox
-        out.style.display = showCode.checked ? 'block' : 'none';
 
         // Complete progress
         clearInterval(progressInterval);
