@@ -1,291 +1,600 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shopify Tools: Image Prompt & Descriptions</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;--primary:#667eea;--success:#10b981;--muted:#6b7280}
-    body{margin:0;padding:24px;max-width:1200px;margin:0 auto;background:#f9fafb}
-    header{margin-bottom:24px;text-align:center;padding:28px 20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border-radius:16px}
-    header h1{margin:0 0 6px 0}
-    .tabs{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
-    .tab-btn{background:#ffffff22;color:#fff;border:1px solid #ffffff55;padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:600}
-    .tab-btn[aria-selected="true"]{background:#fff;color:#374151}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-    h2{margin:0 0 12px 0;color:#1f2937;font-size:20px;border-bottom:2px solid #e5e7eb;padding-bottom:10px}
-    .input-group{margin-bottom:16px}
-    .input-group label{display:block;margin-bottom:8px;font-weight:600;color:#374151}
-    .input-group input,.input-group select,.input-group textarea{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;background:#fff}
-    .input-group input:focus,.input-group select:focus,.input-group textarea:focus{outline:none;border-color:var(--primary)}
-    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    @media (max-width:900px){.form-row-2{grid-template-columns:1fr}}
-    .btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
-    button{padding:12px 20px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
-    .btn-primary{background:var(--primary);color:#fff}
-    .btn-success{background:var(--success);color:#fff}
-    .loader{display:none;width:20px;height:20px;border:3px solid #f3f4f6;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .help-text{font-size:13px;color:var(--muted);margin-top:4px}
-    textarea.code{min-height:360px;font-family:ui-monospace,Menlo,Consolas,monospace;background:#111827;color:#d1d5db}
-    [data-tab]{display:none}.active{display:block}
-    .preview{border:1px dashed #e5e7eb;border-radius:12px;padding:16px;background:#fff}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Shopify Tools</h1>
-    <p>Generate AI Image Prompts or Shopify Descriptions from a product URL</p>
-    <div class="tabs" role="tablist" aria-label="Tool selector">
-      <button class="tab-btn" role="tab" aria-controls="tab-image" aria-selected="true" id="tabbtn-image">Image Prompt</button>
-      <button class="tab-btn" role="tab" aria-controls="tab-desc" aria-selected="false" id="tabbtn-desc">Description Generator</button>
-    </div>
-  </header>
+const { GoogleAuth } = require('google-auth-library');
+const express = require('express');
 
-  <main>
-    <!-- ================= IMAGE PROMPT ================= -->
-    <section class="card active" id="tab-image" data-tab role="tabpanel" aria-labelledby="tabbtn-image">
-      <h2>Imagen Prompt from Shopify URL</h2>
+// ===== CONFIG =====
+const PROJECT_ID = 'gen-lang-client-0859048251';
+const LOCATION   = process.env.VERTEX_LOCATION || 'us-central1';
+const GEMINI_API_MODEL = process.env.GEMINI_API_MODEL || 'gemini-2.5-flash';
+const VERTEX_MODEL = process.env.VERTEX_MODEL || 'gemini-1.5-pro-002';
 
-      <div class="input-group">
-        <label for="shopifyUrl">Shopify Product URL *</label>
-        <input id="shopifyUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
-        <p class="help-text">Used only for the Image Prompt tab.</p>
-      </div>
+const auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
 
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="modelCount">Number of Models</label>
-          <select id="modelCount">
-            <option value="1">1 Model</option>
-            <option value="2" selected>2 Models</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="ageCategory">Age Category</label>
-          <select id="ageCategory">
-            <option value="">Auto-detect</option>
-            <option value="18mon">18 Months</option><option value="3t">3 Years</option>
-            <option value="7y">7 Years</option><option value="12yr">12 Years</option>
-            <option value="18yr">18 Years</option><option value="adult">Adult (25-35)</option>
-          </select>
-        </div>
-      </div>
+// ===== HELPERS =====
+const shopifyJsonUrl = (productUrl) => {
+  const u = new URL(productUrl);
+  const parts = u.pathname.replace(/\/+$/, '').split('/');
+  const last = parts.pop();
+  u.pathname = `/products/${last}.json`;
+  return u.toString();
+};
 
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="ethnicity1">Model 1 Ethnicity</label>
-          <select id="ethnicity1">
-            <option value="Hispanic">Hispanic/Latino</option>
-            <option value="African American">African American</option>
-            <option value="Caucasian">Caucasian</option>
-            <option value="Asian">Asian</option>
-            <option value="Mixed">Mixed</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label for="ethnicity2">Model 2 Ethnicity</label>
-          <select id="ethnicity2">
-            <option value="Hispanic">Hispanic/Latino</option>
-            <option value="African American" selected>African American</option>
-            <option value="Caucasian">Caucasian</option>
-            <option value="Asian">Asian</option>
-            <option value="Mixed">Mixed</option>
-          </select>
-        </div>
-      </div>
+const stripHtml = (s = "") => 
+  s.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 
-      <div class="btn-group" style="gap:20px;align-items:center;">
-        <label><input type="checkbox" id="showMovement" /> Show Movement</label>
-        <label><input type="checkbox" id="addSneakers" /> Sneakers</label>
-        <label><input type="checkbox" id="addSocks" /> Socks</label>
-        <label><input type="checkbox" id="addShoes" /> Casual Shoes</label>
-        <label><input type="checkbox" id="addWorkBoots" /> Work Boots</label>
-      </div>
+const extractSizes = (s = "") =>
+  Array.from(
+    new Set(
+      (s.match(/\b(?:\d{1,2}T|[XSML]{1,3}|\d{1,2}(?:\/\d{1,2})?)\b/gi) || [])
+        .map(x => x.toUpperCase())
+    )
+  );
 
-      <div class="btn-group">
-        <button id="generateBtn" class="btn-primary">Generate Prompt</button>
-        <div class="loader" id="loader"></div>
-      </div>
-      <div id="errorMessage" style="display:none;color:#b91c1c;margin-top:10px;"></div>
+const detectAgeCategoryFromSizes = (sizes) => {
+  const sizeNums = sizes
+    .map(s => {
+      const match = s.match(/(\d+)/);
+      return match ? parseInt(match[1]) : null;
+    })
+    .filter(n => n !== null);
+  
+  if (sizeNums.length === 0) return null;
+  
+  const maxSize = Math.max(...sizeNums);
+  
+  if (maxSize <= 2) return "infant";
+  if (maxSize <= 4) return "toddler";
+  if (maxSize <= 8) return "child";
+  if (maxSize <= 14) return "preteen";
+  return "teen";
+};
 
-      <section class="card" id="outputSection" style="display:none;">
-        <h2>Generated Prompt</h2>
-        <textarea id="jsonOutput" class="code" readonly></textarea>
-        <div class="btn-group">
-          <button id="copyBtn" class="btn-success">Copy JSON</button>
-          <button id="downloadRefBtn" class="btn-primary">Download Reference Image</button>
-        </div>
-        <div id="successMessage" style="display:none;margin-top:8px;color:#065f46;"></div>
-      </section>
-    </section>
+const detectAgeCategory = (title, productType, description, tags, sizes) => {
+  const tagsStr = Array.isArray(tags) ? tags.join(" ") : (tags || "");
+  const text = (title + " " + productType + " " + description + " " + tagsStr).toLowerCase();
+  
+  // Check for adult/men/women keywords FIRST
+  if (text.includes("men") || text.includes("women") || text.includes("adult") ||
+      text.includes("mens") || text.includes("womens") || text.includes("man's") || 
+      text.includes("woman's") || text.includes("unisex") ||
+      /\b(polo|dress shirt|button.?up|business|professional)\b/i.test(text)) {
+    return "adult";
+  }
+  
+  // Check for adult sizes
+  const hasAdultSizes = sizes.some(s => /^(XS|S|M|L|XL|XXL|XXXL)$/i.test(s));
+  if (hasAdultSizes) return "adult";
+  
+  // Check for baby/infant keywords or month sizes
+  if (text.includes("infant") || text.includes("baby") || 
+      text.match(/\b(0-3|3-6|6-9|9-12|12-18)\s*months?\b/i) ||
+      sizes.some(s => /\d{1,2}M$/i.test(s))) {
+    return "infant";
+  }
+  
+  // Check for toddler keywords
+  if (text.includes("toddler") || sizes.some(s => /[2-4]T/i.test(s))) {
+    return "toddler";
+  }
+  
+  const sizeBasedAge = detectAgeCategoryFromSizes(sizes);
+  if (sizeBasedAge) return sizeBasedAge;
+  
+  if (text.includes("kids") || text.includes("girls") || text.includes("boys") || text.includes("child")) {
+    return "child";
+  }
+  
+  return "adult";
+};
 
-    <!-- ================= DESCRIPTION ================= -->
-    <section class="card" id="tab-desc" data-tab role="tabpanel" aria-labelledby="tabbtn-desc">
-      <h2>Shopify Description Generator</h2>
+const detectGender = (title, productType, tags) => {
+  const text = (title + " " + productType + " " + (Array.isArray(tags) ? tags.join(" ") : tags || "")).toLowerCase();
+  
+  if (text.includes("men") || text.includes("mens") || text.includes("man's") || text.includes("male")) return "men";
+  if (text.includes("women") || text.includes("womens") || text.includes("woman's") || text.includes("female") || text.includes("ladies")) return "women";
+  if (text.includes("girls") || text.includes("girl's")) return "girls";
+  if (text.includes("boys") || text.includes("boy's")) return "boys";
+  if (text.includes("unisex")) return "unisex";
+  
+  return "unisex";
+};
 
-      <div class="input-group">
-        <label for="descUrl">Shopify Product URL *</label>
-        <input id="descUrl" type="url" placeholder="https://yourstore.com/products/product-name" />
-        <p class="help-text">Calls your Cloud Function and returns HTML / Markdown / JSON directly.</p>
-      </div>
+const detectBottomType = (handle, title, productType) => {
+  const text = (handle + " " + title + " " + productType).toLowerCase();
+  
+  if (/polo|shirt|tee|top|blouse/i.test(text) && !/set/i.test(text)) {
+    return null;
+  }
+  
+  if (/legging/i.test(text)) return "Legging";
+  if (/short[-\s]?set|shorts?/i.test(text)) return "Short";
+  if (/jogger|jog[-\s]?set/i.test(text)) return "Jogger";
+  if (/pant/i.test(text)) return "Pant";
+  
+  return null;
+};
 
-      <div class="form-row-2">
-        <div class="input-group">
-          <label for="descFormat">Output</label>
-          <select id="descFormat">
-            <option value="html" selected>HTML (Shopify)</option>
-            <option value="md">Markdown</option>
-            <option value="json">JSON</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label style="display:flex;gap:8px;align-items:center;margin-top:28px;">
-            <input type="checkbox" id="showPreview" /> Show preview
-          </label>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button id="genDescBtn" class="btn-primary">Generate Description</button>
-        <button id="copyDescBtn" class="btn-success">Copy</button>
-      </div>
-
-      <section class="card" id="descOutWrap" style="display:none;">
-        <h2>Output</h2>
-        <textarea id="descOutput" class="code" readonly></textarea>
-        <div id="descPreview" class="preview" style="display:none;margin-top:16px;"></div>
-      </section>
-      <div id="descMsg" style="display:none;margin-top:8px;color:#065f46;"></div>
-    </section>
-  </main>
-
-  <!-- Image Prompt JS -->
-  <script src="./prompt-generator.js"></script>
-
-  <script>
-    // ---------- Tabs ----------
-    const tabs = { image: document.getElementById('tab-image'), desc: document.getElementById('tab-desc') };
-    const btnImage = document.getElementById('tabbtn-image');
-    const btnDesc  = document.getElementById('tabbtn-desc');
-    function selectTab(which){
-      Object.values(tabs).forEach(el => el.classList.remove('active'));
-      tabs[which].classList.add('active');
-      btnImage.setAttribute('aria-selected', which==='image');
-      btnDesc.setAttribute('aria-selected', which==='desc');
+const detectPattern = (title, description) => {
+  const text = (title + " " + description).toLowerCase();
+  const patterns = [
+    "butterfly", "animal print", "leopard", "zebra", "heart", "floral", 
+    "stripe", "polka dot", "tie dye", "rainbow", "star", "unicorn", "dinosaur",
+    "princess", "mermaid", "superhero", "sports", "camo", "plaid", "t-rex", "t rex"
+  ];
+  
+  for (const pattern of patterns) {
+    if (text.includes(pattern)) {
+      return pattern.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     }
-    btnImage.addEventListener('click', () => selectTab('image'));
-    btnDesc .addEventListener('click', () => selectTab('desc'));
-    selectTab('image');
+  }
+  
+  return null;
+};
 
-    // ---------- Description: direct call ----------
-    const API_PRODUCT = 'https://shopifyproductgenerator-804118462449.us-central1.run.app';
-    const $ = id => document.getElementById(id);
-    const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn');
-    const out = $('descOutput'), outWrap = $('descOutWrap'), msg = $('descMsg');
-    const preview = $('descPreview'), showPreview = $('showPreview');
+const detectGarmentType = (title, description, productType) => {
+  const text = (title + " " + description + " " + productType).toLowerCase();
+  
+  if (text.includes("hooded") || text.includes("hoodie")) return "Hooded";
+  if (text.includes("fleece")) return "Fleece";
+  if (text.includes("jersey")) return "Jersey";
+  if (text.includes("polo")) return "Polo";
+  if (text.includes("jacket")) return "Jacket";
+  if (text.includes("sweater")) return "Sweater";
+  
+  return null;
+};
 
-    // Minimal Markdown -> HTML for preview fallback
-    function mdToHtml(md){
-      if (!md) return '';
-      let h = md.replace(/\r\n/g, '\n');
-      h = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
-      h = h.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
-      h = h.replace(/(<li>[\s\S]*?<\/li>)(?:(?:\n)?(?!<li>))/g, (m)=>`<ul>${m}</ul>`);
-      h = h.split(/\n{2,}/).map(p => {
-        if (p.startsWith('<ul>')) return p;
-        return `<p>${p.replace(/\n/g,' ')}</p>`;
-      }).join('\n');
-      return h;
+const markdownToHtml = (md = '') => {
+  let html = md || '';
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>.*?<\/li>\n?)+/gs, (m) => '<ul>\n' + m.trim() + '\n</ul>\n');
+
+  const blocks = html.split(/\n\n+/).map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (block.startsWith('<ul>') || block.startsWith('<h')) return block;
+    if (!block.includes('\n')) return '<p>' + block + '</p>';
+    return '<p>' + block.replace(/\n/g, ' ') + '</p>';
+  }).filter(Boolean);
+  return blocks.join('\n\n');
+};
+
+// ===== STRUCTURED JSON PROMPT GENERATOR =====
+function generateCopywritingPrompt(productData) {
+  const { title, vendor, handle, sizes, sku, city, productType, description, tags, bottomType, ageCategory, gender, pattern, garmentType } = productData;
+  
+  const sizesArray = extractSizes(sizes + " " + title);
+  const sizesDisplay = sizesArray.length > 0 ? sizesArray.join(", ") : sizes;
+  
+  const ageCategoryDisplay = ageCategory === "toddler" ? "Toddler" : 
+                              ageCategory === "infant" ? "Infant" :
+                              ageCategory === "child" ? "Kids" :
+                              ageCategory === "preteen" ? "Preteen" :
+                              ageCategory === "teen" ? "Teen" : 
+                              ageCategory === "adult" ? "Adult" : "Kids";
+  
+  const genderDisplay = gender === "girls" ? "Girls" : 
+                        gender === "boys" ? "Boys" : 
+                        gender === "men" ? "Men" :
+                        gender === "women" ? "Women" :
+                        gender === "unisex" ? "Unisex" : "Kids";
+  
+  const titleParts = [];
+  if (pattern) titleParts.push(pattern);
+  if (garmentType) titleParts.push(garmentType);
+  if (bottomType) titleParts.push(bottomType);
+  
+  const isSet = bottomType || /set/i.test(title);
+  const titleTheme = titleParts.length > 0 ? titleParts.join(" ") + " " : "";
+  const titleEnding = isSet ? "Set" : (garmentType || "Item");
+  
+  let prompt = {
+    "task": "Generate SEO-optimized Shopify product content for wholesale apparel",
+    "product_details": {
+      "original_title": title,
+      "brand": vendor,
+      "handle": handle,
+      "sku": sku,
+      "sizes_available": sizesDisplay,
+      "age_category": ageCategory,
+      "age_category_display": ageCategoryDisplay,
+      "gender": gender,
+      "gender_display": genderDisplay,
+      "bottom_type": bottomType,
+      "pattern_theme": pattern,
+      "garment_type": garmentType,
+      "product_type": productType,
+      "shipping_location": city,
+      "description_excerpt": description.slice(0, 200)
     }
+  };
+  
+  return prompt;
+}
 
-    // Normalize API -> consistent fields
-    function normalizeApi(outObj){
-      const title = outObj.title || outObj.product_title || '';
-      const md = outObj.description_markdown || outObj.product_description || '';
-      const html = outObj.description_html || mdToHtml(md);
+// ===== GEMINI CALLER WITH STRUCTURED PROMPT =====
+async function callGemini(productData) {
+  const structuredPrompt = generateCopywritingPrompt(productData);
+  
+  const isSet = productData.bottomType || /set/i.test(productData.title);
+  
+  const promptText = `You are an expert Shopify product copywriter for wholesale apparel.
 
-      let seoTitle = outObj.seo_title || '';
-      let seoDesc  = outObj.seo_description || outObj.seo_meta_description || '';
+PRODUCT INFO:
+Title: ${productData.title}
+Brand: ${productData.vendor}
+SKU: ${productData.sku}
+Sizes: ${productData.sizes || 'S, M, L, XL'}
+Age: ${structuredPrompt.product_details.age_category_display} ${structuredPrompt.product_details.gender_display}
+Type: ${isSet ? 'Set' : 'Single Item'}
+Pattern: ${productData.pattern || 'Standard'}
+Garment: ${productData.garmentType || ''}
+Bottom: ${productData.bottomType || 'N/A'}
+Ships: ${productData.city}
 
-      if (!seoTitle && title) {
-        seoTitle = title.slice(0, 60);
-      }
-      if (!seoDesc && md) {
-        const plain = md
-          .replace(/\*\*(.+?)\*\*/g,'$1')
-          .replace(/^\s*-\s+/gm,'')
-          .replace(/\n+/g,' ')
-          .trim();
-        seoDesc = plain.slice(0, 155);
-      }
+CREATE:
 
-      return { title, md, html, seoTitle, seoDesc };
-    }
+1. title: "${structuredPrompt.product_details.age_category_display} ${structuredPrompt.product_details.gender_display} ${productData.pattern ? productData.pattern + ' ' : ''}${productData.garmentType ? productData.garmentType + ' ' : ''}${productData.bottomType ? productData.bottomType + ' ' : ''}${isSet ? 'Set' : (productData.garmentType || 'Item')} – ${productData.sku}"
+Max 70 chars. Natural and descriptive.
 
-    genDescBtn.addEventListener('click', async () => {
-      const url  = $('descUrl').value.trim();
-      const want = $('descFormat').value;
-      if (!url || !url.includes('/products/')) { alert('Enter a valid Shopify product URL'); return; }
+2. seo_title: Optimized version with " ( ${productData.sku} )"
+Max 65 chars. Keywords + ( SKU ).
 
-      outWrap.style.display = 'none'; preview.style.display = 'none'; msg.style.display = 'none'; out.value = '';
+3. seo_description: 140-155 chars
+Start with "Wholesale". End with "Ships from ${productData.city}."
+Mention key features.
 
-      try {
-        const res = await fetch(API_PRODUCT, {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ product_url: url })
-        });
-        const text = await res.text();
-        let data; try { data = JSON.parse(text); } catch { throw new Error('Non-JSON response from API'); }
+4. description_markdown:
+Opening sentence about the ${isSet ? 'set' : 'item'}.
 
-        const apiPayload = data.outputs || data;
-        const { title, md, html, seoTitle, seoDesc } = normalizeApi(apiPayload);
+**Features & Details**
+- **Brand:** ${productData.vendor}
+- **Sizes:** ${productData.sizes || 'S, M, L, XL'}
+${isSet ? '- **Top:** [describe]\n- **Bottom:** [describe]' : '- **Material:** [describe]\n- **Features:** [describe]'}
+- **Care:** Machine wash cold
+- **Style/SKU:** ${productData.sku}
 
-        // Create complete output object
-        const jsonOut = {
-          title,
-          seo_title: seoTitle,
-          seo_description: seoDesc,
-          description_markdown: md,
-          description_html: html
-        };
+Closing about wholesale value and ${productData.city}.
 
-        // Format output based on selection
-        if (want === 'json') {
-          out.value = JSON.stringify(jsonOut, null, 2);
-        } else if (want === 'md') {
-          // Format markdown with all fields
-          out.value = `TITLE:\n${title}\n\nSEO TITLE:\n${seoTitle}\n\nSEO DESCRIPTION:\n${seoDesc}\n\nDESCRIPTION:\n${md}`;
-        } else { // html
-          // Format HTML with all fields as HTML comments + content
-          out.value = `<!-- TITLE -->\n${title}\n\n<!-- SEO TITLE -->\n${seoTitle}\n\n<!-- SEO DESCRIPTION -->\n${seoDesc}\n\n<!-- DESCRIPTION HTML -->\n${html}`;
-        }
+5. category: ${productData.ageCategory === 'adult' ? 
+  (productData.gender === 'men' ? "Men's Apparel" : 
+   productData.gender === 'women' ? "Women's Apparel" : "Adult Apparel") :
+  `Choose from: Toddler Girls Legging Sets, Toddler Girls Short Sets, Kids Apparel Sets`}
 
-        if (showPreview.checked) {
-          preview.innerHTML = `<h3>${title}</h3><p><strong>SEO Title:</strong> ${seoTitle}</p><p><strong>SEO Desc:</strong> ${seoDesc}</p><hr>${html}`;
-          preview.style.display = 'block';
-        }
+RULES:
+- Sizes = "${productData.sizes || 'S, M, L, XL'}" NOT ${productData.sku}
+- Use markdown ** for bold
+- SKU appears in title, seo_title, and Style/SKU only
 
-        outWrap.style.display = 'block';
-        msg.textContent = 'Generated from Cloud Function.';
-        msg.style.display = 'block';
-      } catch (e) {
-        msg.textContent = 'Error: ' + e.message;
-        msg.style.display = 'block';
-        msg.style.color = '#b91c1c';
+Return valid JSON: {title, seo_title, seo_description, description_markdown, category}`;
+
+  const OUTPUT_SCHEMA = {
+    type: 'object',
+    properties: {
+      title: { type: 'string' },
+      seo_title: { type: 'string' },
+      seo_description: { type: 'string' },
+      description_markdown: { type: 'string' },
+      category: { type: 'string' }
+    },
+    required: ['title', 'seo_title', 'seo_description', 'description_markdown', 'category']
+  };
+
+  const fallback = () => {
+    const ageCat = productData.ageCategory === "toddler" ? "Toddler" : 
+                   productData.ageCategory === "infant" ? "Infant" :
+                   productData.ageCategory === "adult" ? "Adult" : "Kids";
+    const genderCat = productData.gender === "girls" ? "Girls" : 
+                      productData.gender === "boys" ? "Boys" :
+                      productData.gender === "men" ? "Men" :
+                      productData.gender === "women" ? "Women" : "Kids";
+    const pattern = productData.pattern ? ` ${productData.pattern}` : "";
+    const garment = productData.garmentType ? ` ${productData.garmentType}` : "";
+    const bottom = productData.bottomType ? ` ${productData.bottomType}` : "";
+    const isSetFb = productData.bottomType || /set/i.test(productData.title);
+    
+    console.log('⚠️ WARNING: Using fallback function - Gemini did not return valid response');
+    
+    return {
+      title: `${ageCat} ${genderCat}${pattern}${garment}${bottom} ${isSetFb ? 'Set' : (productData.garmentType || 'Item')} – ${productData.sku}`.trim(),
+      seo_title: `${ageCat} ${genderCat}${pattern} ${isSetFb ? 'Set' : 'Item'} ( ${productData.sku} )`,
+      seo_description: `Wholesale ${ageCat} ${genderCat}${pattern.toLowerCase()} apparel. Comfortable fabric, quality construction. Ships from ${productData.city}.`,
+      description_markdown:
+        `Comfortable and stylish ${ageCat.toLowerCase()} ${genderCat.toLowerCase()} ${isSetFb ? 'set' : 'item'} perfect for everyday wear${isSetFb ? ' and play' : ''}.\n\n` +
+        `**Features & Details**\n` +
+        `- **Brand:** ${productData.vendor}\n` +
+        (productData.sizes ? `- **Sizes:** ${productData.sizes}\n` : ``) +
+        (isSetFb ? `- **Top:** Quality construction with comfortable fit\n- **Bottom:** Matching coordinated design\n` : `- **Material:** Quality fabric construction\n- **Features:** Professional design and finish\n`) +
+        `- **Style/SKU:** ${productData.sku}\n\n` +
+        `Perfect for wholesale and boutique buyers. Ships from ${productData.city}.`,
+      category: productData.ageCategory === 'adult' ? 
+        (productData.gender === 'men' ? "Men's Apparel" : 
+         productData.gender === 'women' ? "Women's Apparel" : "Adult Apparel") :
+        (productData.bottomType === 'Legging' ? `${ageCat} ${genderCat} Legging Sets` :
+         productData.bottomType === 'Short' ? `${ageCat} ${genderCat} Short Sets` :
+         `${ageCat} ${genderCat} Jog Sets`)
+    };
+  };
+
+  const robustParse = (raw) => {
+    if (!raw || typeof raw !== 'string') throw new Error('empty');
+    let t = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/i, '').trim();
+    try { return JSON.parse(t); } catch {}
+    const m = t.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+    throw new Error('no-json');
+  };
+
+  if (process.env.GEMINI_API_KEY) {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: GEMINI_API_MODEL });
+
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: promptText }] }],
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json',
+        responseSchema: OUTPUT_SCHEMA
       }
     });
 
-    copyDescBtn.addEventListener('click', async () => {
-      if (!out.value) return;
-      await navigator.clipboard.writeText(out.value);
-      msg.textContent = 'Copied!';
-      msg.style.color = '#065f46';
-      msg.style.display = 'block';
-      setTimeout(() => msg.style.display = 'none', 1500);
+    const r = result?.response;
+    let jsonText = typeof r?.text === 'function' ? r.text() : '';
+    if (!jsonText) {
+      const part = r?.candidates?.[0]?.content?.parts?.find(p => typeof p?.text === 'string');
+      jsonText = part?.text || '';
+    }
+    if (!jsonText) {
+      console.error('❌ Gemini returned empty; blockReason:', r?.promptFeedback?.blockReason || 'unknown');
+      console.error('Full response object:', JSON.stringify(r, null, 2));
+      return fallback();
+    }
+
+    console.log('✅ Gemini response received, parsing...');
+
+    let out;
+    try { out = robustParse(jsonText); }
+    catch (e) {
+      console.error('❌ Gemini JSON parse error:', e.message);
+      console.error('First 300 chars:', jsonText.slice(0, 300));
+      return fallback();
+    }
+
+    console.log('✅ Successfully parsed Gemini response');
+
+    if (!out.title.includes(productData.sku))
+      out.title = out.title.replace(/\s*$/, ` – ${productData.sku}`);
+    if (!out.seo_title.includes(productData.sku))
+      out.seo_title = out.seo_title.replace(/\s*$/, ` ( ${productData.sku} )`);
+    
+    return out;
+  }
+
+  // Vertex AI fallback
+  const client = await auth.getClient();
+  const tokenResp = await client.getAccessToken();
+  const accessToken = tokenResp?.token || tokenResp;
+  if (!accessToken) throw new Error('Access token missing');
+
+  const base = `https://${LOCATION}-aiplatform.googleapis.com/v1`;
+  const modelPath = `projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${VERTEX_MODEL}:generateContent`;
+  const url = `${base}/${modelPath}`;
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: promptText }] }],
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 2048,
+        responseMimeType: 'application/json',
+        responseSchema: OUTPUT_SCHEMA
+      }
+    })
+  });
+
+  if (!resp.ok) {
+    const e = await resp.text();
+    throw new Error(`Gemini (Vertex) error: ${resp.status} - ${e}`);
+  }
+
+  const data = await resp.json();
+  const textPart = data?.candidates?.[0]?.content?.parts?.find?.(p => typeof p?.text === 'string');
+  const jsonText = textPart?.text || '';
+  if (!jsonText) {
+    console.error('❌ Vertex returned empty; reason:',
+      data?.promptFeedback?.blockReason || data?.candidates?.[0]?.finishReason || 'unknown');
+    return fallback();
+  }
+
+  console.log('✅ Vertex response received, parsing...');
+
+  let out;
+  try { out = robustParse(jsonText); }
+  catch (e) {
+    console.error('❌ Vertex JSON parse error:', e.message);
+    return fallback();
+  }
+
+  console.log('✅ Successfully parsed Vertex response');
+
+  if (!out.title.includes(productData.sku))
+    out.title = out.title.replace(/\s*$/, ` – ${productData.sku}`);
+  if (!out.seo_title.includes(productData.sku))
+    out.seo_title = out.seo_title.replace(/\s*$/, ` ( ${productData.sku} )`);
+  
+  return out;
+}
+
+// ===== MAIN HANDLER =====
+async function handler(req, res) {
+  res.set('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') {
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(204).send('');
+  }
+
+  try {
+    const { product_url, city = 'Miami, FL' } = req.body || {};
+    if (!product_url) return res.status(400).json({ error: 'Missing product_url' });
+
+    console.log('Fetching Shopify product:', product_url);
+    const apiUrl = shopifyJsonUrl(product_url);
+    const shopifyRes = await fetch(apiUrl);
+    if (!shopifyRes.ok) throw new Error('Failed to fetch Shopify product');
+    const { product } = await shopifyRes.json();
+    if (!product) throw new Error('Product not found');
+
+    console.log('Product title:', product.title);
+
+    const handle = product.handle || '';
+    const title = product.title || '';
+    const description = stripHtml(product.body_html || '');
+    const tags = product.tags || [];
+    
+    const sku = product.variants?.[0]?.sku || String(product.id) || '';
+    
+    console.log('=== SIZE EXTRACTION ===');
+    console.log('SKU:', sku);
+    
+    let allSizes = [];
+    for (const v of (product.variants || [])) {
+      const opt2 = String(v.option2 || '');
+      const opt1 = String(v.option1 || '');
+      
+      // Check option2 first (common for sizes)
+      if (opt2 && /(\d{1,2}-\d{1,2}-\d{1,2}|[XSML]|T|\/)/i.test(opt2)) {
+        console.log(`Using option2: ${opt2}`);
+        allSizes.push(opt2);
+      } else if (opt1 && opt1 !== sku && /(\d{1,2}T|[XSML]|\/)/i.test(opt1)) {
+        console.log(`Using option1: ${opt1}`);
+        allSizes.push(opt1);
+      }
+    }
+    
+    // Split and format sizes
+    const splitSizes = allSizes.flatMap(s => {
+      const sizeStr = String(s).trim();
+      
+      // Month format: 12-18-24 → 12M, 18M, 24M
+      if (/^\d{1,2}-\d{1,2}-\d{1,2}$/.test(sizeStr)) {
+        return sizeStr.split('-').map(sz => sz.trim() + 'M');
+      }
+      
+      // Adult sizes: S-M-L-XL → S, M, L, XL
+      if (/-/.test(sizeStr) && /[SMLX]/i.test(sizeStr)) {
+        return sizeStr.split('-').map(sz => sz.trim());
+      }
+      
+      return [sizeStr];
     });
-  </script>
-</body>
-</html>
+    
+    // Filter valid sizes
+    const validSizes = splitSizes.filter(s => {
+      const sz = String(s).trim();
+      if (sz === sku) return false;
+      if (/\d{1,2}T/i.test(sz)) return true;
+      if (/\d{1,2}M$/i.test(sz)) return true;
+      if (/^[XSML]{1,3}$/i.test(sz)) return true;
+      if (/^\d{1,2}$/.test(sz) && parseInt(sz) <= 20) return true;
+      if (/^\d{1,2}\/\d{1,2}$/.test(sz)) return true;
+      return false;
+    });
+    
+    let sizes = validSizes.join(', ');
+    console.log('Extracted sizes:', sizes);
+    
+    // Fallback
+    let ageCategory = 'child';
+    
+    if (!sizes) {
+      const tempSizes = extractSizes(title + ' ' + description);
+      ageCategory = detectAgeCategory(title, product.product_type, description, tags, tempSizes);
+      
+      if (ageCategory === 'adult') sizes = 'S, M, L, XL';
+      else if (ageCategory === 'infant') sizes = '12M, 18M, 24M';
+      else if (ageCategory === 'toddler') sizes = '2T, 3T, 4T';
+      else sizes = '4, 6, 8, 10';
+      
+      console.log('Using fallback sizes:', sizes);
+    }
+    
+    console.log('FINAL SIZES:', sizes);
+
+    const finalSizesArray = extractSizes(sizes + " " + title);
+    ageCategory = detectAgeCategory(title, product.product_type, description, tags, finalSizesArray);
+    const gender = detectGender(title, product.product_type, tags);
+    const bottomType = detectBottomType(handle, title, product.product_type || '');
+    const pattern = detectPattern(title, description);
+    const garmentType = detectGarmentType(title, description, product.product_type || '');
+
+    console.log('Detections:', { ageCategory, gender, bottomType, pattern, garmentType });
+
+    const productData = {
+      title,
+      vendor: product.vendor || '',
+      handle,
+      sizes,
+      sku,
+      city,
+      productType: product.product_type || '',
+      description,
+      tags,
+      ageCategory,
+      gender,
+      bottomType,
+      pattern,
+      garmentType,
+      variants: product.variants || []
+    };
+
+    console.log('Calling Gemini...');
+    const aiResult = await callGemini(productData);
+    console.log('✅ AI result received');
+
+    const descriptionHtml = markdownToHtml(aiResult.description_markdown);
+
+    return res.json({
+      success: true,
+      outputs: {
+        title: aiResult.title,
+        product_title: aiResult.title,
+        seo_title: aiResult.seo_title,
+        seo_description: aiResult.seo_description,
+        seo_meta_description: aiResult.seo_description,
+        description_markdown: aiResult.description_markdown,
+        description_html: descriptionHtml,
+        product_description: aiResult.description_markdown,
+        url_handle: `/products/${product.handle}`,
+        category: aiResult.category
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error:', error);
+    console.error('Stack:', error.stack);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message
+    });
+  }
+}
+
+// ===== EXPORT FOR CLOUD FUNCTIONS =====
+exports.shopifyproductgenerator = handler;
+
+// ===== OPTIONAL SERVER FOR CLOUD RUN =====
+if (!process.env.FUNCTION_TARGET) {
+  const app = express();
+  app.use(express.json());
+  app.get('/', (req, res) => res.send('OK'));
+  app.post('/shopifyproductgenerator', handler);
+  const port = process.env.PORT || 8080;
+  app.listen(port, () => console.log(`HTTP server listening on ${port}`));
+}
