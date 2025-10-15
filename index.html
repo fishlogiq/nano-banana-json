@@ -164,7 +164,7 @@
         </div>
         <div class="input-group">
           <label style="display:flex;gap:8px;align-items:center;margin-top:28px;">
-            <input type="checkbox" id="showPreview" /> Show preview
+            <input type="checkbox" id="showCode" /> Show Code
           </label>
         </div>
       </div>
@@ -182,8 +182,12 @@
 
       <section class="card" id="descOutWrap" style="display:none;">
         <h2>Output</h2>
-        <textarea id="descOutput" class="code" readonly></textarea>
-        <div id="descPreview" class="preview" style="display:none;margin-top:16px;"></div>
+        
+        <!-- Preview (shown by default) -->
+        <div id="descPreview" class="preview"></div>
+        
+        <!-- Code textarea (hidden by default) -->
+        <textarea id="descOutput" class="code" readonly style="display:none;margin-top:16px;"></textarea>
       </section>
       <div id="descMsg" style="display:none;margin-top:8px;color:#065f46;"></div>
     </section>
@@ -212,8 +216,13 @@
     const $ = id => document.getElementById(id);
     const genDescBtn = $('genDescBtn'), copyDescBtn = $('copyDescBtn');
     const out = $('descOutput'), outWrap = $('descOutWrap'), msg = $('descMsg');
-    const preview = $('descPreview'), showPreview = $('showPreview');
+    const preview = $('descPreview'), showCode = $('showCode');
     const descProgress = $('descProgress'), descProgressBar = $('descProgressBar'), descProgressText = $('descProgressText');
+
+    // Toggle code visibility
+    showCode.addEventListener('change', () => {
+      out.style.display = showCode.checked ? 'block' : 'none';
+    });
 
     // Progress simulation
     function simulateProgress(progressBar, progressText, steps) {
@@ -276,7 +285,8 @@
 
       // Reset UI
       outWrap.style.display = 'none'; 
-      preview.style.display = 'none'; 
+      preview.style.display = 'none';
+      preview.innerHTML = '';
       msg.style.display = 'none'; 
       out.value = '';
       genDescBtn.disabled = true;
@@ -328,10 +338,12 @@
           out.value = `<!-- TITLE -->\n${title}\n\n<!-- SEO TITLE -->\n${seoTitle}\n\n<!-- SEO DESCRIPTION -->\n${seoDesc}\n\n<!-- DESCRIPTION HTML -->\n${html}`;
         }
 
-        if (showPreview.checked) {
-          preview.innerHTML = `<h3>${title}</h3><p><strong>SEO Title:</strong> ${seoTitle}</p><p><strong>SEO Desc:</strong> ${seoDesc}</p><hr>${html}`;
-          preview.style.display = 'block';
-        }
+        // Always show formatted preview
+        preview.innerHTML = `<h3>${title}</h3><p><strong>SEO Title:</strong> ${seoTitle}</p><p><strong>SEO Desc:</strong> ${seoDesc}</p><hr>${html}`;
+        preview.style.display = 'block';
+        
+        // Show/hide code based on checkbox
+        out.style.display = showCode.checked ? 'block' : 'none';
 
         // Complete progress
         clearInterval(progressInterval);
